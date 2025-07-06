@@ -16,34 +16,45 @@ export function Sheet({
   headerCellClassName = 'text-sm',
   cellClassName = 'text-sm',
 }: SheetProps) {
-  const apiCols = useSheetStore((s) => s.columns)
-  const apiRows = useSheetStore((s) => s.rowCount)
+  const columns = useSheetStore((s) => s.columns)
+  const rowCount = useSheetStore((s) => Math.max(s.rowCount, minRows))
+  const colCount = useSheetStore((s) => Math.max(s.colCount, minCols))
 
-  const rowCount = Math.max(apiRows, minRows)
-  const colCount = Math.max(apiCols.length, minCols)
-  const totalRows = rowCount + 1
+  const renderCols = Array.from({ length: colCount }).map(
+    (_, i) => columns[i] || { name: '', key: `__blank_${i}` },
+  )
 
   return (
-    <div className="overflow-auto border bg-white shadow rounded-md p-4">
-      {Array.from({ length: totalRows }).map((_, r) => {
-        const isHeader = r === 0
-        const dataRow = r - 1
+    <div className="overflow-auto whitespace-nowrap border bg-white shadow rounded-md p-4">
+      {/* header row */}
+      <div className="flex">
+        {renderCols.map((_, c) => (
+          <Cell
+            key={`h-${c}`}
+            row={-1}
+            col={c}
+            className={headerCellClassName}
+            rowCount={rowCount}
+            colCount={colCount}
+          />
+        ))}
+      </div>
 
-        return (
-          <div key={`row-${r}`} className="flex">
-            {Array.from({ length: colCount }).map((_, c) => (
-              <Cell
-                key={`cell-${r}-${c}`}
-                row={isHeader ? -1 : dataRow}
-                col={c}
-                className={isHeader ? headerCellClassName : cellClassName}
-                rowCount={rowCount}
-                colCount={colCount}
-              />
-            ))}
-          </div>
-        )
-      })}
+      {/* data rows */}
+      {Array.from({ length: rowCount }).map((_, r) => (
+        <div key={`r-${r}`} className="flex">
+          {renderCols.map((_, c) => (
+            <Cell
+              key={`d-${r}-${c}`}
+              row={r}
+              col={c}
+              className={cellClassName}
+              rowCount={rowCount}
+              colCount={colCount}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   )
 }

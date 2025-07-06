@@ -17,6 +17,8 @@ export type Store = {
   setCell: (id: string, value: string) => void
   setCells: (updates: Record<string, string>) => void
   setColumnName: (colIndex: number, name: string) => void
+  setRowCount: (rows: number) => void
+  setColCount: (cols: number) => void
   initFromApi: (apiData: ApiResponse) => void
 }
 
@@ -26,6 +28,11 @@ export const useSheetStore = create<Store>((set) => ({
   rowCount: 0,
   colCount: 0,
   selection: null,
+
+  initFromApi: (apiData) => {
+    const { cellMap, columns, rowCount, colCount } = apiToCellMap(apiData)
+    set({ cells: cellMap, columns, rowCount, colCount })
+  },
 
   setSelection: (id) => set({ selection: id }),
 
@@ -49,8 +56,7 @@ export const useSheetStore = create<Store>((set) => ({
       return { columns: newCols }
     }),
 
-  initFromApi: (apiData) => {
-    const { cellMap, columns, rowCount, colCount } = apiToCellMap(apiData)
-    set({ cells: cellMap, columns, rowCount, colCount })
-  },
+  setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
+
+  setColCount: (cols) => set((s) => ({ colCount: cols > s.colCount ? cols : s.colCount })),
 }))

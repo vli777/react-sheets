@@ -7,7 +7,7 @@ import { useSheetStore } from '../store/useSheetStore'
 
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'])
 
-const BASE_CELL_CLASS = 'flex-1 min-w-0 box-border p-1 truncate text-sm'
+const BASE_CELL_CLASS = 'flex-none w-36 min-w-0 box-border p-1 truncate text-sm'
 
 export interface CellProps {
   col: number
@@ -56,18 +56,21 @@ export function Cell({ row, col, className = '' }: CellProps) {
       key: e.key,
       shiftKey: e.shiftKey,
     })
+    if (!next) return
 
-    if (next) {
-      e.preventDefault()
+    e.preventDefault()
 
-      const { col: nc, row: nr } = parseCellId(next)
+    const { col: nc, row: nr } = parseCellId(next)
+    const { colCount: curCols, rowCount: curRows } = useSheetStore.getState()
+    if (nc + 1 > curCols) {
       setColCount(nc + 1)
-      setRowCount(nr + 1)
-      setSel(next)
-
-      const nextInput = document.getElementById(next) as HTMLInputElement | null
-      nextInput?.focus({ preventScroll: true })
     }
+    if (nr + 1 > curRows) {
+      setRowCount(nr + 1)
+    }
+
+    setSel(next)
+    document.getElementById(next)?.focus({ preventScroll: true })
   }
 
   return (

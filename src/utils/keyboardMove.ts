@@ -2,17 +2,17 @@
 
 import { parseCellId, getCellId } from './getCellId'
 
-interface MoveParams {
-  cellId: string
-  key: string
-  shiftKey: boolean
-  colCount: number
-  rowCount: number
+export interface MoveParams {
+  cellId: string // current cell ID (e.g. "B2")
+  key: string // key pressed
+  shiftKey: boolean // whether Shift was held
 }
 
 export function keyboardMove(params: MoveParams): string | null {
   /**
    * Compute the next cell ID when the user navigates via keyboard.
+   *  Prevents going left of column 0 or going above header row (row = -1).
+   *  Allows moving right/down indefinitely (so sheet can grow).
    *
    * Args:
    *   cellId   current cell’s ID (e.g. "B2")
@@ -24,43 +24,37 @@ export function keyboardMove(params: MoveParams): string | null {
    * Returns:
    *   the next cell ID if within bounds, or null if out of range
    */
-  const { cellId, key, shiftKey, colCount, rowCount } = params
+  const { cellId, key, shiftKey } = params
 
   let { col, row } = parseCellId(cellId)
 
-  if (key === 'ArrowRight') {
-    col++
-  }
-  if (key === 'ArrowLeft') {
-    col = Math.max(0, col - 1)
-  }
-  if (key === 'ArrowDown') {
-    row++
-  }
-  if (key === 'ArrowUp') {
-    row = Math.max(0, row - 1)
-  }
-
-  if (key === 'Tab') {
-    if (shiftKey) {
+  switch (key) {
+    case 'ArrowRight':
+      col += 1
+      break
+    case 'ArrowLeft':
       col = Math.max(0, col - 1)
-    } else {
-      col++
-    }
-  }
-
-  if (key === 'Enter') {
-    if (shiftKey) {
-      row = Math.max(0, row - 1)
-    } else {
-      row++
-    }
+      break
+    case 'ArrowDown':
+      row += 1
+      break
+    case 'ArrowUp':
+      row = Math.max(-1, row - 1) // header row = -1
+      break
+    case 'Tab':
+      col = shiftKey ? Math.max(0, col - 1) : col + 1
+      break
+    case 'Enter':
+      row = shiftKey ? Math.max(-1, row - 1) : row + 1
+      break
   }
 
   // bounds check
-  if (col < 0 || col >= colCount || row < 0 || row >= rowCount) {
+  if (col < 0 || row < -1) {
     return null
   }
-
-  return getCellId(col, row)
+  const newCellId = getCellId(col, row)
+  // TO-DO: move selection debug output to toolbar
+  console.log({newCellId})
+  return newCellId
 }
