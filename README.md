@@ -1,69 +1,46 @@
-# React + TypeScript + Vite
+# React-Sheets
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, high-performance in-browser basic spreadsheet built with React, Zustand, and CSS-Grid. Supports keyboard navigation, click-drag range selection, per-column width & per-row height resizing, and dynamic viewport sizes.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Grid display**  
+  Renders tabular data in a scrollable CSS-Grid, with a fixed-width index column on the left.
+- **Single-cell & range selection**  
+  Click to select; click-and-drag to select a rectangular range; keyboard arrows/Tab/Enter to move, including shift-arrow to grow a range.
+- **In-cell editing**  
+  Inline `<input>` cells; type freely, then use Enter/Tab/Arrows to commit & move.
+- **Per-column width**  
+  Drag the thin bar on the right edge of any header cell to resize that column.
+- **Per-row height**  
+  Drag the thin bar on the bottom edge of any index cell to resize that row.
+- **Auto-expand**  
+  Arrow-navigate beyond the last column/row and the sheet grows dynamically.
+- **Viewport-fit blank cells**  
+  On mount & resize, the grid renders enough blank rows/columns to fill the viewport.
+- **Persisted state**  
+  All cell values, column widths, row heights, and selection survive in the Zustand store; easily serializable for API sync.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+git clone https://github.com/your-org/react-sheets.git
+cd react-sheets
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Running locally
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+# start dev server
+npm run dev
+
+# build for production
+npm run build
 ```
