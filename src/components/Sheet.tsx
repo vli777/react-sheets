@@ -1,5 +1,6 @@
 // src/components/Sheet.tsx
-import { useRef, useState, useLayoutEffect } from 'react'
+
+import { useRef, useState, useLayoutEffect, useEffect } from 'react'
 import { useSheetStore, MIN_COL_PX, MIN_ROW_PX } from '../store/useSheetStore'
 import { ColumnResizer } from './ColumnResizer'
 import { RowResizer } from './RowResizer'
@@ -24,9 +25,30 @@ export function Sheet({
   const columns = useSheetStore((s) => s.columns)
   const rowMeta = useSheetStore((s) => s.rowMeta)
 
+  const undo = useSheetStore((s) => s.undo)
+  const redo = useSheetStore((s) => s.redo)
+
   const containerRef = useRef<HTMLDivElement>(null)
   const [minCols, setMinCols] = useState(0)
   const [minRows, setMinRows] = useState(0)
+
+  // Handle keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault()
+          undo()
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+          e.preventDefault()
+          redo()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   useLayoutEffect(() => {
     const compute = () => {
@@ -100,7 +122,10 @@ export function Sheet({
               <RowResizer rowIndex={r} />
             </div>
 
-            <div className="grid bg-gray-200" style={{ gridTemplateColumns: columnTemplate, gap: '1px', paddingBottom: '1px' }}>
+            <div
+              className="grid bg-gray-200"
+              style={{ gridTemplateColumns: columnTemplate, gap: '1px', paddingBottom: '1px' }}
+            >
               {renderCols.map((_, c) => (
                 <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} />
               ))}

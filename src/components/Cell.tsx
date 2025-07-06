@@ -102,7 +102,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
     // Handle delete/backspace for range selection
     if (DELETE_KEYS.has(e.key) && inRange && hasMultipleCells) {
       e.preventDefault()
-      
+
       // Get all cells in the range
       const { col: c0, row: r0 } = parseCellId(rangeAnchor!)
       const { col: c1, row: r1 } = parseCellId(rangeHead!)
@@ -110,7 +110,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
       const hiCol = Math.max(c0, c1)
       const loRow = Math.min(r0, r1)
       const hiRow = Math.max(r0, r1)
-      
+
       // Clear all cells in the range
       const updates: Record<string, string> = {}
       for (let r = loRow; r <= hiRow; r++) {
@@ -119,7 +119,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
           updates[cellId] = ''
         }
       }
-      
+
       useSheetStore.getState().setCells(updates)
       return
     }
