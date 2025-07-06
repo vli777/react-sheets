@@ -83,8 +83,7 @@ export function Sheet({
   return (
     <div
       ref={containerRef}
-      className="inline-block overflow-auto border bg-white shadow rounded-md"
-      style={{ minHeight: 400 }}
+      className="w-full h-full flex-1 overflow-auto border bg-white shadow rounded-md"
     >
       {/* Header Row */}
       <div className="flex">
