@@ -3,14 +3,39 @@ import type { ApiResponse } from './api'
 export type RowMeta = { height?: number }
 export type CellValue = { value: string }
 export type Column = { name: string; key: string; width?: number }
-export type HistoryEntry = {
-  type: 'cell' | 'cells' | 'column' | 'rowHeight' | 'columnWidth'
-  timestamp: number
-  diff: {
-    before: Record<string, any>
-    after: Record<string, any>
-  }
-}
+
+export type CellHistoryDiff = {
+  before: { id: string; value: string };
+  after: { id: string; value: string };
+};
+
+export type CellsHistoryDiff = {
+  before: Record<string, string>;
+  after: Record<string, string>;
+};
+
+export type ColumnHistoryDiff = {
+  before: { index: number; name: string };
+  after: { index: number; name: string };
+};
+
+export type RowHeightHistoryDiff = {
+  before: { index: number; height: number };
+  after: { index: number; height: number };
+};
+
+export type ColumnWidthHistoryDiff = {
+  before: { index: number; width: number };
+  after: { index: number; width: number };
+};
+
+export type HistoryEntry =
+  | { type: 'cell'; timestamp: number; diff: CellHistoryDiff }
+  | { type: 'cells'; timestamp: number; diff: CellsHistoryDiff }
+  | { type: 'column'; timestamp: number; diff: ColumnHistoryDiff }
+  | { type: 'rowHeight'; timestamp: number; diff: RowHeightHistoryDiff }
+  | { type: 'columnWidth'; timestamp: number; diff: ColumnWidthHistoryDiff };
+
 export type Store = {
   cells: Record<string, CellValue>
   columns: Column[]
