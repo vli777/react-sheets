@@ -1,6 +1,6 @@
 // src/components/Cell.tsx
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { getCellId, parseCellId } from '../utils/getCellId'
 import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
