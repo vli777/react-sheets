@@ -14,6 +14,8 @@ export const useSheetStore = create<Store>((set) => ({
   colCount: 0,
   selection: null,
   rowMeta: [],
+  rangeAnchor: null,
+  rangeHead: null,
 
   initFromApi: (apiData) => {
     const { cellMap, columns, rowCount, colCount } = apiToCellMap(apiData)
@@ -58,6 +60,8 @@ export const useSheetStore = create<Store>((set) => ({
     }),
 
   setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
-
   setColCount: (cols) => set((s) => ({ colCount: cols > s.colCount ? cols : s.colCount })),
+  setRangeAnchor: (id) => set({ rangeAnchor: id }),
+  setRangeHead: (id) => set({ rangeHead: id }),
+  clearRange: () => set({ rangeAnchor: null, rangeHead: null }),
 }))

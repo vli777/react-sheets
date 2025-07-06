@@ -19,4 +19,9 @@ export type Store = {
   setColumnName: (colIndex: number, name: string) => void
   setRowHeight: (rowIndex: number, px: number) => void
   setColumnWidth: (index: number, px: number) => void
+  rangeAnchor: string | null
+  rangeHead: string | null
+  setRangeAnchor: (id: string | null) => void
+  setRangeHead: (id: string | null) => void
+  clearRange: () => void
 }
