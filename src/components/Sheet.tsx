@@ -73,8 +73,8 @@ export function Sheet({
         />
 
         <div
-          className="grid"
-          style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX }}
+          className="grid bg-gray-200"
+          style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: '1px' }}
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
@@ -100,7 +100,7 @@ export function Sheet({
               <RowResizer rowIndex={r} />
             </div>
 
-            <div className="grid" style={{ gridTemplateColumns: columnTemplate }}>
+            <div className="grid bg-gray-200" style={{ gridTemplateColumns: columnTemplate, gap: '1px', paddingBottom: '1px' }}>
               {renderCols.map((_, c) => (
                 <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} />
               ))}

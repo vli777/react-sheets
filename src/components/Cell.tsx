@@ -7,7 +7,7 @@ import { useSheetStore } from '../store/useSheetStore'
 
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'])
 
-const BASE_CELL_CLASS = 'flex-none w-36 min-w-0 box-border p-1 truncate text-sm rounded-none'
+const BASE_CELL_CLASS = 'flex-none w-36 min-w-0 p-1 truncate text-sm rounded-none'
 
 export interface CellProps {
   col: number
@@ -69,13 +69,13 @@ export function Cell({ row, col, className = '' }: CellProps) {
     let borderClasses = ''
 
     // Top border for top row
-    if (row === loRow) borderClasses += ' border-t-2 border-blue-600'
+    if (row === loRow) borderClasses += ' border-t border-blue-600'
     // Bottom border for bottom row
-    if (row === hiRow) borderClasses += ' border-b-2 border-blue-600'
+    if (row === hiRow) borderClasses += ' border-b border-blue-600'
     // Left border for leftmost column
-    if (col === loCol) borderClasses += ' border-l-2 border-blue-600'
+    if (col === loCol) borderClasses += ' border-l border-blue-600'
     // Right border for rightmost column
-    if (col === hiCol) borderClasses += ' border-r-2 border-blue-600'
+    if (col === hiCol) borderClasses += ' border-r border-blue-600'
 
     return borderClasses
   }
@@ -171,13 +171,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
           w-full h-full
           ${BASE_CELL_CLASS}
           ${className}
-          ${
-            hasMultipleCells
-              ? 'border-gray-200'
-              : selection === id
-              ? 'border-blue-500'
-              : 'border-gray-200'
-          }
+          ${selection === id ? 'border border-blue-500' : ''}
           focus:border-blue-400
           focus:outline-2
           focus:outline-blue-600

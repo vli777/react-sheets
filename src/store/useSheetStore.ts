@@ -5,7 +5,7 @@ import { apiToCellMap } from '../utils/apiTransform'
 import type { Store } from '../types/sheet'
 
 export const MIN_COL_PX = 144 // px ≈ 9rem
-export const MIN_ROW_PX = 24 // px ≈ 1.5rem
+export const MIN_ROW_PX = 32 // px ≈ 2rem
 
 export const useSheetStore = create<Store>((set) => ({
   cells: {},
