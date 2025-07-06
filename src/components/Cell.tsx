@@ -1,7 +1,7 @@
 // src/components/Cell.tsx
 
-import React, { useRef } from 'react'
-import { getCellId } from '../utils/getCellId'
+import React, { useEffect, useRef } from 'react'
+import { getCellId, parseCellId } from '../utils/getCellId'
 import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
 
@@ -17,7 +17,7 @@ export interface CellProps {
   colCount: number
 }
 
-export function Cell({ row, col, className = '', rowCount, colCount }: CellProps) {
+export function Cell({ row, col, className = '' }: CellProps) {
   const id = getCellId(col, row)
   const cols = useSheetStore((s) => s.columns)
   const dataVal = useSheetStore((s) => s.cells[id]?.value ?? '')
@@ -25,10 +25,19 @@ export function Cell({ row, col, className = '', rowCount, colCount }: CellProps
   const setCell = useSheetStore((s) => s.setCell)
   const setCol = useSheetStore((s) => s.setColumnName)
   const setSel = useSheetStore((s) => s.setSelection)
+  const setRowCount = useSheetStore((s) => s.setRowCount)
+  const setColCount = useSheetStore((s) => s.setColCount)
   const ref = useRef<HTMLInputElement>(null)
 
   const isHeader = row === -1
   const value = isHeader ? cols[col]?.name ?? '' : dataVal
+
+  useEffect(() => {
+    if (selection === id) {
+      ref.current?.focus({ preventScroll: true })
+      ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    }
+  }, [selection, id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value
@@ -46,12 +55,16 @@ export function Cell({ row, col, className = '', rowCount, colCount }: CellProps
       cellId: id,
       key: e.key,
       shiftKey: e.shiftKey,
-      colCount,
-      rowCount,
     })
+
     if (next) {
       e.preventDefault()
+
+      const { col: nc, row: nr } = parseCellId(next)
+      setColCount(nc + 1)
+      setRowCount(nr + 1)
       setSel(next)
+
       const nextInput = document.getElementById(next) as HTMLInputElement | null
       nextInput?.focus({ preventScroll: true })
     }
@@ -59,9 +72,9 @@ export function Cell({ row, col, className = '', rowCount, colCount }: CellProps
 
   return (
     <input
-      type="text"
       id={id}
       ref={ref}
+      type="text"
       className={`
         ${BASE_CELL_CLASS}
         ${className}
