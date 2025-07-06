@@ -2,25 +2,10 @@
 
 import { create } from 'zustand'
 import { apiToCellMap } from '../utils/apiTransform'
-import type { ApiResponse } from '../types/api'
+import type { Store } from '../types/sheet'
 
-export type CellValue = { value: string }
-export type Column = { name: string; key: string }
-
-export type Store = {
-  cells: Record<string, CellValue>
-  columns: Column[]
-  rowCount: number
-  colCount: number
-  selection: string | null
-  setSelection: (id: string | null) => void
-  setCell: (id: string, value: string) => void
-  setCells: (updates: Record<string, string>) => void
-  setColumnName: (colIndex: number, name: string) => void
-  setRowCount: (rows: number) => void
-  setColCount: (cols: number) => void
-  initFromApi: (apiData: ApiResponse) => void
-}
+export const MIN_COL = 144 // px ≈ 9rem
+export const MIN_ROW = 24 // px ≈ 1.5rem
 
 export const useSheetStore = create<Store>((set) => ({
   cells: {},
@@ -28,6 +13,7 @@ export const useSheetStore = create<Store>((set) => ({
   rowCount: 0,
   colCount: 0,
   selection: null,
+  rowMeta: [],
 
   initFromApi: (apiData) => {
     const { cellMap, columns, rowCount, colCount } = apiToCellMap(apiData)
@@ -54,6 +40,19 @@ export const useSheetStore = create<Store>((set) => ({
     set((s) => {
       const newCols = s.columns.map((c, i) => (i === colIndex ? { ...c, name } : c))
       return { columns: newCols }
+    }),
+
+  setRowHeight: (idx, px) =>
+    set((s) => {
+      const meta = [...s.rowMeta]
+      meta[idx] = { height: Math.max(MIN_ROW, px) }
+      return { rowMeta: meta }
+    }),
+
+  setColumnWidth: (idx, px) =>
+    set((s) => {
+      const cols = s.columns.map((c, i) => (i === idx ? { ...c, width: Math.max(MIN_COL, px) } : c))
+      return { columns: cols }
     }),
 
   setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
