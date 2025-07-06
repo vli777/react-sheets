@@ -47,6 +47,9 @@ npm run build
 
 ## Assumptions & Design Decisions
 
+- **Custom grid vs. AG-Grid**  
+  Opted for a homegrown CSS-Grid + Zustand solution rather than AG-Grid because while it is great for data tables, we optimized for performance with planned virtualization to handle large dataset sorting and filtering capability. Since
+  AG-Grid relies on <table> elements, its performance is capped by browser limits vs CSS Grid + <div>.
 - **Target scale:** We expect most financial models to be on the order of a few thousand rows and a few dozen columns. Beyond that, users usually aggregate or split models into separate sheets, so we didn’t prioritize full virtual scrolling up‐front.
 - **Extensible styling:** All cell and header styles can be overridden via props (`headerCellClassName`, `cellClassName`, `showIndex`), keeping the component library–agnostic and easy to theme.
 - **Data persistence in-store:** We chose Zustand as a lightweight, in-memory store so that all cell values, column widths, row heights, and selections live in a single source of truth, easily serializable for API sync, and avoiding prop drilling.
