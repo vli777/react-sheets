@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
 import { Sheet } from './components/Sheet'
 import { useSheetStore } from './store/useSheetStore'

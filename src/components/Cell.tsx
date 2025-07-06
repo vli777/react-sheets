@@ -13,8 +13,6 @@ export interface CellProps {
   col: number
   row: number
   className?: string
-  rowCount: number
-  colCount: number
 }
 
 export function Cell({ row, col, className = '' }: CellProps) {
