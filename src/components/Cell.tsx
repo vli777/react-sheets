@@ -177,7 +177,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
           focus:outline-blue-600
           focus:outline-offset-0
           ${inRange && hasMultipleCells ? 'bg-blue-50' : ''}
-          ${inRange && selection === id ? 'ring-2 ring-blue-600 ring-opacity-75' : ''}
+          ${inRange && selection === id ? '' : ''}
           rounded-none
         `}
         value={value}
