@@ -6,6 +6,7 @@ import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
 
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'])
+const DELETE_KEYS = new Set(['Delete', 'Backspace'])
 
 const BASE_CELL_CLASS = 'flex-none w-36 min-w-0 p-1 truncate text-sm rounded-none'
 
@@ -98,6 +99,31 @@ export function Cell({ row, col, className = '' }: CellProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle delete/backspace for range selection
+    if (DELETE_KEYS.has(e.key) && inRange && hasMultipleCells) {
+      e.preventDefault()
+      
+      // Get all cells in the range
+      const { col: c0, row: r0 } = parseCellId(rangeAnchor!)
+      const { col: c1, row: r1 } = parseCellId(rangeHead!)
+      const loCol = Math.min(c0, c1)
+      const hiCol = Math.max(c0, c1)
+      const loRow = Math.min(r0, r1)
+      const hiRow = Math.max(r0, r1)
+      
+      // Clear all cells in the range
+      const updates: Record<string, string> = {}
+      for (let r = loRow; r <= hiRow; r++) {
+        for (let c = loCol; c <= hiCol; c++) {
+          const cellId = getCellId(c, r)
+          updates[cellId] = ''
+        }
+      }
+      
+      useSheetStore.getState().setCells(updates)
+      return
+    }
+
     if (!NAV_KEYS.has(e.key)) return
 
     const next = keyboardMove({
