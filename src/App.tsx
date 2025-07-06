@@ -13,11 +13,11 @@ function App() {
   }, [loadApiData])
 
   return (
-    <>
-      <div className="w-screen h-screen flex flex-col">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="p-4 m-4 bg-white rounded-lg shadow-lg flex flex-col items-center">
         <Sheet />
       </div>
-    </>
+    </div>
   )
 }
 
