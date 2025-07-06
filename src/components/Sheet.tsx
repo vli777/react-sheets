@@ -12,12 +12,14 @@ export interface SheetProps {
   headerCellClassName?: string
   cellClassName?: string
   showIndex?: boolean
+  showGrid?: boolean
 }
 
 export function Sheet({
   headerCellClassName = 'text-sm',
   cellClassName = 'text-sm',
   showIndex = true,
+  showGrid = true,
 }: SheetProps) {
   const rowCount = useSheetStore((s) => s.rowCount)
   const colCount = useSheetStore((s) => s.colCount)
@@ -88,15 +90,13 @@ export function Sheet({
       {/* Header Row */}
       <div className="flex">
         <div
-          className={`px-4 relative flex items-center justify-center text-sm text-gray-500 ${
-            showIndex ? 'text-center' : ''
-          }`}
+          className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 text-center' : 'text-transparent'}`}
           style={{ width: INDEX_COLUMN_WIDTH, minWidth: INDEX_COLUMN_WIDTH }}
         />
 
         <div
-          className="grid bg-gray-200"
-          style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: '1px' }}
+          className={`grid${showGrid ? ' bg-gray-200' : ''}`}
+          style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: showGrid ? '1px' : '0px' }}
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
@@ -113,9 +113,7 @@ export function Sheet({
         return (
           <div key={`row-${r}`} className="flex" style={{ height, minHeight: MIN_ROW_PX }}>
             <div
-              className={`px-4 relative flex items-center justify-center text-sm text-gray-500 ${
-                showIndex ? 'text-center' : ''
-              }`}
+              className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 text-center' : 'text-transparent'}`}
               style={{ width: INDEX_COLUMN_WIDTH, minWidth: INDEX_COLUMN_WIDTH }}
             >
               {showIndex ? r + 1 : null}
@@ -123,8 +121,8 @@ export function Sheet({
             </div>
 
             <div
-              className="grid bg-gray-200"
-              style={{ gridTemplateColumns: columnTemplate, gap: '1px', paddingBottom: '1px' }}
+              className={`grid${showGrid ? ' bg-gray-200' : ''}`}
+              style={{ gridTemplateColumns: columnTemplate, gap: showGrid ? '1px' : '0px', paddingBottom: showGrid ? '1px' : '0px' }}
             >
               {renderCols.map((_, c) => (
                 <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} />
