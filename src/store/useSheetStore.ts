@@ -4,8 +4,8 @@ import { create } from 'zustand'
 import { apiToCellMap } from '../utils/apiTransform'
 import type { Store } from '../types/sheet'
 
-export const MIN_COL = 144 // px ≈ 9rem
-export const MIN_ROW = 24 // px ≈ 1.5rem
+export const MIN_COL_PX = 144 // px ≈ 9rem
+export const MIN_ROW_PX = 24 // px ≈ 1.5rem
 
 export const useSheetStore = create<Store>((set) => ({
   cells: {},
@@ -45,13 +45,15 @@ export const useSheetStore = create<Store>((set) => ({
   setRowHeight: (idx, px) =>
     set((s) => {
       const meta = [...s.rowMeta]
-      meta[idx] = { height: Math.max(MIN_ROW, px) }
+      meta[idx] = { height: Math.max(MIN_ROW_PX, px) }
       return { rowMeta: meta }
     }),
 
   setColumnWidth: (idx, px) =>
     set((s) => {
-      const cols = s.columns.map((c, i) => (i === idx ? { ...c, width: Math.max(MIN_COL, px) } : c))
+      const cols = s.columns.map((c, i) =>
+        i === idx ? { ...c, width: Math.max(MIN_COL_PX, px) } : c,
+      )
       return { columns: cols }
     }),
 

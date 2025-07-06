@@ -1,6 +1,6 @@
 // src/components/ColumnResizer.tsx
 
-import { useSheetStore, MIN_COL } from '../store/useSheetStore'
+import { useSheetStore, MIN_COL_PX } from '../store/useSheetStore'
 import { useRef } from 'react'
 
 export function ColumnResizer({ colIndex }: { colIndex: number }) {
@@ -23,7 +23,7 @@ export function ColumnResizer({ colIndex }: { colIndex: number }) {
       className="absolute top-0 right-0 h-full w-1 cursor-col-resize"
       onMouseDown={(e) => {
         startX.current = e.clientX
-        startW.current = useSheetStore.getState().columns[colIndex]?.width ?? MIN_COL
+        startW.current = useSheetStore.getState().columns[colIndex]?.width ?? MIN_COL_PX
         window.addEventListener('mousemove', onMouseMove)
         window.addEventListener('mouseup', onMouseUp)
       }}

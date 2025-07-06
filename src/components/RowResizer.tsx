@@ -1,6 +1,6 @@
 // src/components/RowResizer.tsx
 
-import { useSheetStore, MIN_ROW } from '../store/useSheetStore'
+import { useSheetStore, MIN_ROW_PX } from '../store/useSheetStore'
 import { useRef } from 'react'
 
 export function RowResizer({ rowIndex }: { rowIndex: number }) {
@@ -23,7 +23,7 @@ export function RowResizer({ rowIndex }: { rowIndex: number }) {
       className="absolute left-0 bottom-0 w-full h-1 cursor-row-resize"
       onMouseDown={(e) => {
         startY.current = e.clientY
-        startH.current = useSheetStore.getState().rowMeta[rowIndex]?.height ?? MIN_ROW
+        startH.current = useSheetStore.getState().rowMeta[rowIndex]?.height ?? MIN_ROW_PX
         window.addEventListener('mousemove', onMouseMove)
         window.addEventListener('mouseup', onMouseUp)
       }}
