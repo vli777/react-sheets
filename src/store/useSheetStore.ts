@@ -5,6 +5,7 @@ import { apiToCellMap } from '../utils/apiTransform'
 import type { HistoryEntry, Store } from '../types/sheet'
 
 export const MIN_COL_PX = 144 // px ≈ 9rem
+export const MIN_COL_RESIZE_PX = 15 // px, matches Google Sheets minimum
 export const MIN_ROW_PX = 32 // px ≈ 2rem
 
 export const useSheetStore = create<Store>((set, get) => ({
@@ -96,7 +97,7 @@ export const useSheetStore = create<Store>((set, get) => ({
       }
       cols[idx] = {
         ...cols[idx],
-        width: Math.max(MIN_COL_PX, px),
+        width: Math.max(MIN_COL_RESIZE_PX, px),
       };
       return { columns: cols };
     }),
