@@ -59,10 +59,12 @@ export function Sheet({
       const { width, height } = el.getBoundingClientRect()
       const contentWidth = width - INDEX_COLUMN_WIDTH
       const fitCols = Math.floor(contentWidth / MIN_COL_PX)
+      // Always render one extra column beyond the fit
+      const fitColsPlusOne = fitCols + 1
       // subtract header row height for the rows computation:
       const contentHeight = height - MIN_ROW_PX
       const fitRows = Math.floor(contentHeight / MIN_ROW_PX)
-      setMinCols(Math.max(fitCols, 1))
+      setMinCols(Math.max(fitColsPlusOne, 1))
       setMinRows(Math.max(fitRows, 1))
     }
 
@@ -95,7 +97,7 @@ export function Sheet({
         />
 
         <div
-          className={`grid${showGrid ? ' bg-gray-200' : ''}`}
+          className={`grid${showGrid ? ' bg-gray-200' : ''} border-b border-gray-200`}
           style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: showGrid ? '1px' : '0px' }}
         >
           {renderCols.map((_, c) => (
