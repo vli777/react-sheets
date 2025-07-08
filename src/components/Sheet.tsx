@@ -97,7 +97,7 @@ export function Sheet({
         />
 
         <div
-          className={`grid${showGrid ? ' bg-gray-200' : ''} border-b border-gray-200`}
+          className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''} border-b border-gray-200`}
           style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: showGrid ? '1px' : '0px' }}
         >
           {renderCols.map((_, c) => (
@@ -123,7 +123,7 @@ export function Sheet({
             </div>
 
             <div
-              className={`grid${showGrid ? ' bg-gray-200' : ''}`}
+              className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''}`}
               style={{ gridTemplateColumns: columnTemplate, gap: showGrid ? '1px' : '0px', paddingBottom: showGrid ? '1px' : '0px' }}
             >
               {renderCols.map((_, c) => (
