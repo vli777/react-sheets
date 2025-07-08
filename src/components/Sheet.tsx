@@ -77,7 +77,7 @@ export function Sheet({
   const paddedRows = Math.max(rowCount, minRows)
 
   const columnTemplate = Array.from({ length: paddedCols })
-    .map((_, i) => `${columns[i]?.width ?? MIN_COL_PX}px`)
+    .map((_, i) => `${Math.round(columns[i]?.width ?? MIN_COL_PX)}px`)
     .join(' ')
 
   const renderCols = Array.from({ length: paddedCols }).map(
@@ -98,7 +98,13 @@ export function Sheet({
 
         <div
           className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''} border-b border-gray-200`}
-          style={{ gridTemplateColumns: columnTemplate, minHeight: MIN_ROW_PX, gap: showGrid ? '1px' : '0px' }}
+          style={{ 
+            gridTemplateColumns: columnTemplate, 
+            minHeight: MIN_ROW_PX, 
+            gap: showGrid ? '1px' : '0px',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden'
+          }}
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
@@ -124,7 +130,13 @@ export function Sheet({
 
             <div
               className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''}`}
-              style={{ gridTemplateColumns: columnTemplate, gap: showGrid ? '1px' : '0px', paddingBottom: showGrid ? '1px' : '0px' }}
+              style={{ 
+                gridTemplateColumns: columnTemplate, 
+                gap: showGrid ? '1px' : '0px', 
+                paddingBottom: showGrid ? '1px' : '0px',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden'
+              }}
             >
               {renderCols.map((_, c) => (
                 <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} />
