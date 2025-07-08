@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import { getCellId, parseCellId } from '../utils/getCellId'
 import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
+import { ColumnResizer } from './ColumnResizer'
 
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'])
 const DELETE_KEYS = new Set(['Delete', 'Backspace'])
@@ -217,6 +218,12 @@ export function Cell({ row, col, className = '' }: CellProps) {
         spellCheck="false"
         autoComplete="off"
       />
+      {/* Add ColumnResizer to the right edge of every cell except index column */}
+      {col >= 0 && (
+        <div className="absolute top-0 right-0 h-full w-1 z-10">
+          <ColumnResizer colIndex={col} />
+        </div>
+      )}
     </div>
   )
 }
