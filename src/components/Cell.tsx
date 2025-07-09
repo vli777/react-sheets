@@ -60,31 +60,6 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     return col >= loCol && col <= hiCol && row >= loRow && row <= hiRow
   }, [rangeAnchor, rangeHead, col, row])
 
-  // Determine border classes for range selection
-  const getBorderClasses = () => {
-    if (!inRange) return ''
-
-    const { col: c0, row: r0 } = parseCellId(rangeAnchor!)
-    const { col: c1, row: r1 } = parseCellId(rangeHead!)
-    const loCol = Math.min(c0, c1)
-    const hiCol = Math.max(c0, c1)
-    const loRow = Math.min(r0, r1)
-    const hiRow = Math.max(r0, r1)
-
-    let borderClasses = ''
-
-    // Top border for top row
-    if (row === loRow) borderClasses += ' border-t border-blue-600'
-    // Bottom border for bottom row
-    if (row === hiRow) borderClasses += ' border-b border-blue-600'
-    // Left border for leftmost column
-    if (col === loCol) borderClasses += ' border-l border-blue-600'
-    // Right border for rightmost column
-    if (col === hiCol) borderClasses += ' border-r border-blue-600'
-
-    return borderClasses
-  }
-
   // Check if range has multiple cells
   const hasMultipleCells = React.useMemo(() => {
     if (!rangeAnchor || !rangeHead) return false
@@ -199,7 +174,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       }}
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
         inRange && hasMultipleCells ? 'bg-blue-50' : ''
-      } ${getBorderClasses()}`}
+      }`}
     >
       <input
         id={id}
