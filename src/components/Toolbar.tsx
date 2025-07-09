@@ -33,7 +33,8 @@ export const Toolbar: React.FC = () => {
     for (let r = startRow; r <= endRow; r++) {
       for (let c = startCol; c <= endCol; c++) {
         const id = getCellId(c, r)
-        values.push(cells[id]?.value ?? '')
+        const v = cells[id]?.value ?? ''
+        if (v !== '') values.push(v)
       }
     }
     valueDisplay = values.join(', ')
