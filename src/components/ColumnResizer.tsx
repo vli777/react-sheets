@@ -3,7 +3,7 @@
 import { useSheetStore, MIN_COL_PX } from '../store/useSheetStore'
 import { useRef } from 'react'
 
-export function ColumnResizer({ colIndex }: { colIndex: number }) {
+export function ColumnResizer({ colIndex, isResizable = true }: { colIndex: number, isResizable?: boolean }) {
   const setWidth = useSheetStore((s) => s.setColumnWidth)
   const startX = useRef(0)
   const startW = useRef(0)
@@ -18,6 +18,7 @@ export function ColumnResizer({ colIndex }: { colIndex: number }) {
     window.removeEventListener('mouseup', onMouseUp)
   }
 
+  if (!isResizable) return null
   return (
     <span
       className="absolute top-0 right-0 h-full w-1 cursor-col-resize"

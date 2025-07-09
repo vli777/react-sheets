@@ -3,7 +3,7 @@
 import { useSheetStore, MIN_ROW_PX } from '../store/useSheetStore'
 import { useRef } from 'react'
 
-export function RowResizer({ rowIndex }: { rowIndex: number }) {
+export function RowResizer({ rowIndex, isResizable = true }: { rowIndex: number, isResizable?: boolean }) {
   const setHeight = useSheetStore((s) => s.setRowHeight)
   const startY = useRef(0)
   const startH = useRef(0)
@@ -18,6 +18,7 @@ export function RowResizer({ rowIndex }: { rowIndex: number }) {
     window.removeEventListener('mouseup', onMouseUp)
   }
 
+  if (!isResizable) return null
   return (
     <span
       className="absolute left-0 bottom-0 w-full h-1 cursor-row-resize"

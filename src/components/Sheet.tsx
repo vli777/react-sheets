@@ -13,6 +13,7 @@ export interface SheetProps {
   cellClassName?: string
   showIndex?: boolean
   showGrid?: boolean
+  isResizable?: boolean
 }
 
 export function Sheet({
@@ -20,6 +21,7 @@ export function Sheet({
   cellClassName = 'text-sm',
   showIndex = true,
   showGrid = true,
+  isResizable = false,
 }: SheetProps) {
   const rowCount = useSheetStore((s) => s.rowCount)
   const colCount = useSheetStore((s) => s.colCount)
@@ -108,8 +110,8 @@ export function Sheet({
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
-              <Cell row={-1} col={c} className={headerCellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
-              <ColumnResizer colIndex={c} />
+              <Cell row={-1} col={c} className={headerCellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} isResizable={isResizable} />
+              <ColumnResizer colIndex={c} isResizable={isResizable} />
             </div>
           ))}
         </div>
@@ -125,7 +127,7 @@ export function Sheet({
               style={{ width: INDEX_COLUMN_WIDTH, minWidth: INDEX_COLUMN_WIDTH }}
             >
               {showIndex ? r + 1 : null}
-              <RowResizer rowIndex={r} />
+              <RowResizer rowIndex={r} isResizable={isResizable} />
             </div>
 
             <div
@@ -139,7 +141,7 @@ export function Sheet({
               }}
             >
               {renderCols.map((_, c) => (
-                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
+                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} isResizable={isResizable} />
               ))}
             </div>
           </div>

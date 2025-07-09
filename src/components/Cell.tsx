@@ -18,9 +18,10 @@ export interface CellProps {
   maxCol: number
   maxRow: number
   showGrid?: boolean
+  isResizable?: boolean
 }
 
-export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true }: CellProps) {
+export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true, isResizable = true }: CellProps) {
   const id = getCellId(col, row)
   const cols = useSheetStore((s) => s.columns)
   const dataVal = useSheetStore((s) => s.cells[id]?.value ?? '')
@@ -207,7 +208,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       {/* Add ColumnResizer to the right edge of every cell except index column */}
       {col >= 0 && (
         <div className="absolute top-0 right-0 h-full w-1 z-10">
-          <ColumnResizer colIndex={col} />
+          <ColumnResizer colIndex={col} isResizable={isResizable} />
         </div>
       )}
     </div>
