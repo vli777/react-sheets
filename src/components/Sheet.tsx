@@ -31,12 +31,14 @@ export function Sheet({
 
   const undo = useSheetStore((s) => s.undo)
   const redo = useSheetStore((s) => s.redo)
+  const copySelection = useSheetStore((s) => s.copySelection)
+  const pasteToSelection = useSheetStore((s) => s.pasteToSelection)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [minCols, setMinCols] = useState(0)
   const [minRows, setMinRows] = useState(0)
 
-  // Handle keyboard shortcuts for undo/redo
+  // Handle keyboard shortcuts for undo/redo and copy/paste
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -46,13 +48,19 @@ export function Sheet({
         } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
           e.preventDefault()
           redo()
+        } else if (e.key === 'c') {
+          e.preventDefault()
+          copySelection()
+        } else if (e.key === 'v') {
+          e.preventDefault()
+          pasteToSelection()
         }
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [undo, redo])
+  }, [undo, redo, copySelection, pasteToSelection])
 
   useLayoutEffect(() => {
     const compute = () => {

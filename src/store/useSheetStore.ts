@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { apiToCellMap } from '../utils/apiTransform'
+import { getCellId, parseCellId } from '../utils/getCellId'
 import type { HistoryEntry, Store } from '../types/sheet'
 
 export const MIN_COL_PX = 144 // px ≈ 9rem
@@ -107,6 +108,83 @@ export const useSheetStore = create<Store>((set, get) => ({
   setRangeAnchor: (id) => set({ rangeAnchor: id }),
   setRangeHead: (id) => set({ rangeHead: id }),
   clearRange: () => set({ rangeAnchor: null, rangeHead: null }),
+
+  // Copy/paste functionality
+  clipboard: null as string[][] | null,
+
+  copySelection: () => {
+    const state = get()
+    if (!state.rangeAnchor || !state.rangeHead) {
+      // Copy single cell
+      if (state.selection) {
+        const value = state.cells[state.selection]?.value ?? ''
+        state.clipboard = [[value]]
+        // Also copy to system clipboard
+        navigator.clipboard.writeText(value)
+      }
+      return
+    }
+
+    // Copy range
+    const { col: c0, row: r0 } = parseCellId(state.rangeAnchor)
+    const { col: c1, row: r1 } = parseCellId(state.rangeHead)
+    const loCol = Math.min(c0, c1)
+    const hiCol = Math.max(c0, c1)
+    const loRow = Math.min(r0, r1)
+    const hiRow = Math.max(r0, r1)
+
+    const clipboard: string[][] = []
+    for (let r = loRow; r <= hiRow; r++) {
+      const row: string[] = []
+      for (let c = loCol; c <= hiCol; c++) {
+        const cellId = getCellId(c, r)
+        row.push(state.cells[cellId]?.value ?? '')
+      }
+      clipboard.push(row)
+    }
+
+    set({ clipboard })
+    
+    // Also copy to system clipboard as tab-separated values
+    const clipboardText = clipboard.map(row => row.join('\t')).join('\n')
+    navigator.clipboard.writeText(clipboardText)
+  },
+
+  pasteToSelection: () => {
+    const state = get()
+    if (!state.clipboard || state.clipboard.length === 0) return
+
+    const targetCell = state.selection
+    if (!targetCell) return
+
+    const { col: targetCol, row: targetRow } = parseCellId(targetCell)
+    const clipboard = state.clipboard
+    const clipboardRows = clipboard.length
+    const clipboardCols = clipboard[0].length
+
+    // Ensure we have enough rows and columns
+    const maxRow = targetRow + clipboardRows - 1
+    const maxCol = targetCol + clipboardCols - 1
+    const { colCount: curCols, rowCount: curRows } = state
+    
+    if (maxCol + 1 > curCols) {
+      set({ colCount: maxCol + 1 })
+    }
+    if (maxRow + 1 > curRows) {
+      set({ rowCount: maxRow + 1 })
+    }
+
+    // Paste the clipboard data
+    const updates: Record<string, string> = {}
+    for (let r = 0; r < clipboardRows; r++) {
+      for (let c = 0; c < clipboardCols; c++) {
+        const cellId = getCellId(targetCol + c, targetRow + r)
+        updates[cellId] = clipboard[r][c]
+      }
+    }
+
+    state.setCells(updates)
+  },
 
   // Helper function to add history entry
   addHistoryEntry: (entry: HistoryEntry) => {

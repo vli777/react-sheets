@@ -63,6 +63,11 @@ export type Store = {
   setRangeHead: (id: string | null) => void
   clearRange: () => void
 
+  // Copy/paste functionality
+  clipboard: string[][] | null
+  copySelection: () => void
+  pasteToSelection: () => void
+
   // Undo/redo functions
   addHistoryEntry: (entry: HistoryEntry) => void
   undo: () => void

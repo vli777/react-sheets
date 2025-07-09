@@ -37,6 +37,8 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const setAnchor = useSheetStore((s) => s.setRangeAnchor)
   const setHead = useSheetStore((s) => s.setRangeHead)
   const clearRange = useSheetStore((s) => s.clearRange)
+  const copySelection = useSheetStore((s) => s.copySelection)
+  const pasteToSelection = useSheetStore((s) => s.pasteToSelection)
 
   const ref = useRef<HTMLInputElement>(null)
 
@@ -109,6 +111,45 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       }
 
       useSheetStore.getState().setCells(updates)
+      return
+    }
+
+    // Handle copy/paste operations
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'c') {
+        e.preventDefault()
+        copySelection()
+        return
+      } else if (e.key === 'v') {
+        e.preventDefault()
+        pasteToSelection()
+        return
+      } else if (e.key === 'x') {
+        e.preventDefault()
+        copySelection()
+        // Clear the selection after copying
+        if (inRange && hasMultipleCells) {
+          const { col: c0, row: r0 } = parseCellId(rangeAnchor!)
+          const { col: c1, row: r1 } = parseCellId(rangeHead!)
+          const loCol = Math.min(c0, c1)
+          const hiCol = Math.max(c0, c1)
+          const loRow = Math.min(r0, r1)
+          const hiRow = Math.max(r0, r1)
+
+          const updates: Record<string, string> = {}
+          for (let r = loRow; r <= hiRow; r++) {
+            for (let c = loCol; c <= hiCol; c++) {
+              const cellId = getCellId(c, r)
+              updates[cellId] = ''
+            }
+          }
+          useSheetStore.getState().setCells(updates)
+        } else if (selection) {
+          setCell(selection, '')
+        }
+        return
+      }
+      // Allow other Ctrl/Cmd combinations (like Ctrl+A) to work normally
       return
     }
 
@@ -190,8 +231,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           focus:outline-2
           focus:outline-blue-600
           focus:outline-offset-0
-          ${inRange && hasMultipleCells ? 'bg-blue-50' : ''}
-          ${inRange && selection === id ? '' : ''}
+          ${inRange && hasMultipleCells ? 'bg-transparent' : ''}
           rounded-none
         `}
         value={value}
