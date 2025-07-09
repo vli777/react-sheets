@@ -21,7 +21,7 @@ export function Sheet({
   cellClassName = 'text-sm',
   showIndex = true,
   showGrid = true,
-  isResizable = false,
+  isResizable = true,
 }: SheetProps) {
   const rowCount = useSheetStore((s) => s.rowCount)
   const colCount = useSheetStore((s) => s.colCount)
