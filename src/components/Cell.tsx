@@ -15,9 +15,12 @@ export interface CellProps {
   col: number
   row: number
   className?: string
+  maxCol: number
+  maxRow: number
+  showGrid?: boolean
 }
 
-export function Cell({ row, col, className = '' }: CellProps) {
+export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true }: CellProps) {
   const id = getCellId(col, row)
   const cols = useSheetStore((s) => s.columns)
   const dataVal = useSheetStore((s) => s.cells[id]?.value ?? '')
@@ -89,6 +92,14 @@ export function Cell({ row, col, className = '' }: CellProps) {
     const { col: c1, row: r1 } = parseCellId(rangeHead)
     return c0 !== c1 || r0 !== r1
   }, [rangeAnchor, rangeHead])
+
+  const getGridBorderClasses = () => {
+    if (!showGrid) return ''
+    let border = ''
+    if (row !== maxRow - 1) border += ' border-b border-[#e0e0e0]'
+    if (col !== maxCol - 1) border += ' border-r border-[#e0e0e0]'
+    return border
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value
@@ -186,7 +197,7 @@ export function Cell({ row, col, className = '' }: CellProps) {
           setSel(id)
         }
       }}
-      className={`relative w-full h-full rounded-none ${
+      className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
         inRange && hasMultipleCells ? 'bg-blue-50' : ''
       } ${getBorderClasses()}`}
     >

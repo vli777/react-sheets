@@ -97,18 +97,18 @@ export function Sheet({
         />
 
         <div
-          className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''} border-b border-gray-200`}
+          className={`grid${showGrid ? ' border-b border-r border-gray-200' : ''}`}
           style={{ 
             gridTemplateColumns: columnTemplate, 
             minHeight: MIN_ROW_PX, 
-            gap: showGrid ? '1px' : '0px',
+            gap: '0px',
             transform: 'translateZ(0)',
             backfaceVisibility: 'hidden'
           }}
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
-              <Cell row={-1} col={c} className={headerCellClassName} />
+              <Cell row={-1} col={c} className={headerCellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
               <ColumnResizer colIndex={c} />
             </div>
           ))}
@@ -129,17 +129,17 @@ export function Sheet({
             </div>
 
             <div
-              className={`grid${showGrid ? ' bg-gray-200 border-r border-gray-200' : ''}`}
+              className={`grid${showGrid ? ' border-r border-gray-200' : ''}`}
               style={{ 
                 gridTemplateColumns: columnTemplate, 
-                gap: showGrid ? '1px' : '0px', 
-                paddingBottom: showGrid ? '1px' : '0px',
+                gap: '0px', 
+                paddingBottom: '0px',
                 transform: 'translateZ(0)',
                 backfaceVisibility: 'hidden'
               }}
             >
               {renderCols.map((_, c) => (
-                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} />
+                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
               ))}
             </div>
           </div>
