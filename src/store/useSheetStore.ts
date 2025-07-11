@@ -186,6 +186,71 @@ export const useSheetStore = create<Store>((set, get) => ({
     state.setCells(updates)
   },
 
+  // Sort rows by a column
+  sortByColumn: (colIndex: number, direction: 'asc' | 'desc' = 'asc', rowRange?: [number, number]) => {
+    const state = get();
+    const { rowCount, colCount, cells } = state;
+    // Determine rows to sort
+    let startRow = 0, endRow = rowCount - 1;
+    if (rowRange && rowRange.length === 2) {
+      startRow = rowRange[0];
+      endRow = rowRange[1];
+    }
+    // Build array of row indices to sort
+    const rows: number[] = [];
+    for (let r = startRow; r <= endRow; r++) rows.push(r);
+    // Get values for the column in each row
+    const getCellValue = (row: number): string => {
+      const cellId = getCellId(colIndex, row);
+      return cells[cellId]?.value ?? '';
+    };
+    // Detect if column is numeric
+    const isNumeric = rows.every(r => getCellValue(r).trim() === '' || !isNaN(Number(getCellValue(r))));
+    // Sort rows by the column value
+    rows.sort((a, b) => {
+      const va = getCellValue(a);
+      const vb = getCellValue(b);
+      if (isNumeric) {
+        const na = Number(va);
+        const nb = Number(vb);
+        return direction === 'asc' ? na - nb : nb - na;
+      } else {
+        return direction === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      }
+    });
+    // Build new cells mapping with rows reordered
+    const newCells: Record<string, { value: string }> = { ...cells };
+    for (let c = 0; c < colCount; c++) {
+      // Extract values for this column in the sorted order
+      const values = rows.map(r => {
+        const cellId = getCellId(c, r);
+        return cells[cellId]?.value ?? '';
+      });
+      // Write back values in sorted order
+      for (let i = 0; i < rows.length; i++) {
+        const r = startRow + i;
+        const cellId = getCellId(c, r);
+        newCells[cellId] = { value: values[i] };
+      }
+    }
+    // Record history
+    const before: Record<string, string> = {};
+    const after: Record<string, string> = {};
+    for (let r = startRow; r <= endRow; r++) {
+      for (let c = 0; c < colCount; c++) {
+        const cellId = getCellId(c, r);
+        before[cellId] = cells[cellId]?.value ?? '';
+        after[cellId] = newCells[cellId]?.value ?? '';
+      }
+    }
+    state.addHistoryEntry({
+      type: 'cells',
+      timestamp: Date.now(),
+      diff: { before, after },
+    });
+    set({ cells: newCells });
+  },
+
   // Helper function to add history entry
   addHistoryEntry: (entry: HistoryEntry) => {
     const state = get()

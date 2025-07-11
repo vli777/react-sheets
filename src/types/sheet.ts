@@ -74,4 +74,7 @@ export type Store = {
   redo: () => void
   canUndo: () => boolean
   canRedo: () => boolean
+
+  // Sorting
+  sortByColumn: (colIndex: number, direction: 'asc' | 'desc', rowRange?: [number, number]) => void
 }

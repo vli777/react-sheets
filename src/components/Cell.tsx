@@ -1,6 +1,6 @@
 // src/components/Cell.tsx
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { getCellId, parseCellId } from '../utils/getCellId'
 import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
@@ -41,6 +41,8 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const pasteToSelection = useSheetStore((s) => s.pasteToSelection)
 
   const ref = useRef<HTMLInputElement>(null)
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [hovered, setHovered] = useState(false)
 
   const isHeader = row === -1
   const value = isHeader ? cols[col]?.name ?? '' : dataVal
@@ -213,11 +215,41 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           setHead(id)
           setSel(id)
         }
+        setHovered(true)
       }}
+      onMouseLeave={() => setHovered(false)}
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
         inRange && hasMultipleCells ? 'bg-blue-50' : ''
       }`}
     >
+      {/* Header cell: add single sort icon, right-aligned, only on hover */}
+      {isHeader && (
+        <button
+          type="button"
+          title="Sort column"
+          className={`absolute top-1 right-2 z-30 text-xs px-1 py-0.5 rounded transition-opacity duration-150 ${hovered ? 'opacity-100' : 'opacity-0'} hover:bg-blue-100`}
+          style={{ pointerEvents: 'auto' }}
+          onClick={(e) => {
+            e.stopPropagation()
+            let rowRange: [number, number] | undefined = undefined
+            if (rangeAnchor && rangeHead) {
+              const { col: c0, row: r0 } = parseCellId(rangeAnchor)
+              const { col: c1, row: r1 } = parseCellId(rangeHead)
+              const loCol = Math.min(c0, c1)
+              const hiCol = Math.max(c0, c1)
+              const loRow = Math.min(r0, r1)
+              const hiRow = Math.max(r0, r1)
+              if (col >= loCol && col <= hiCol && loRow >= 0 && hiRow >= 0) {
+                rowRange = [loRow, hiRow]
+              }
+            }
+            useSheetStore.getState().sortByColumn(col, sortDir, rowRange)
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+          }}
+        >
+          {sortDir === 'asc' ? '▲' : '▼'}
+        </button>
+      )}
       <input
         id={id}
         ref={ref}
