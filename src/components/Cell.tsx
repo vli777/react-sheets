@@ -194,19 +194,22 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   return (
     <div
       onMouseDown={(e) => {
-        e.preventDefault()
-        if (e.shiftKey) {
-          // Extend range selection
-          if (!rangeAnchor) {
+        // Only prevent default if not clicking the input itself
+        if (e.target !== ref.current) {
+          e.preventDefault()
+          if (e.shiftKey) {
+            // Extend range selection
+            if (!rangeAnchor) {
+              setAnchor(id)
+            }
+            setHead(id)
+            setSel(id)
+          } else {
+            // Start new selection
             setAnchor(id)
+            setHead(id)
+            setSel(id)
           }
-          setHead(id)
-          setSel(id)
-        } else {
-          // Start new selection
-          setAnchor(id)
-          setHead(id)
-          setSel(id)
         }
       }}
       onMouseOver={(e) => {
