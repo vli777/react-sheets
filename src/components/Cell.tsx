@@ -44,6 +44,21 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [hovered, setHovered] = useState(false)
 
+  // Mobile range selection state
+  const longPressTimeout = useRef<number | null>(null)
+  const [isTouchSelecting, setIsTouchSelecting] = useState(false)
+
+  // Helper to get cell id from touch event
+  function getCellIdFromTouch(e: React.TouchEvent) {
+    // Find the closest input under the touch
+    const touch = e.touches[0] || e.changedTouches[0]
+    const el = document.elementFromPoint(touch.clientX, touch.clientY)
+    if (el && el instanceof HTMLElement && el.id) {
+      return el.id
+    }
+    return id // fallback to current cell
+  }
+
   const isHeader = row === -1
   const value = isHeader ? cols[col]?.name ?? '' : dataVal
 
@@ -194,19 +209,22 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   return (
     <div
       onMouseDown={(e) => {
-        e.preventDefault()
-        if (e.shiftKey) {
-          // Extend range selection
-          if (!rangeAnchor) {
+        // Only prevent default if not clicking the input itself
+        if (e.target !== ref.current) {
+          e.preventDefault()
+          if (e.shiftKey) {
+            // Extend range selection
+            if (!rangeAnchor) {
+              setAnchor(id)
+            }
+            setHead(id)
+            setSel(id)
+          } else {
+            // Start new selection
             setAnchor(id)
+            setHead(id)
+            setSel(id)
           }
-          setHead(id)
-          setSel(id)
-        } else {
-          // Start new selection
-          setAnchor(id)
-          setHead(id)
-          setSel(id)
         }
       }}
       onMouseOver={(e) => {
@@ -218,6 +236,36 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         setHovered(true)
       }}
       onMouseLeave={() => setHovered(false)}
+      onTouchStart={(e) => {
+        if (isHeader) return
+        // Start long-press timer
+        longPressTimeout.current = setTimeout(() => {
+          setIsTouchSelecting(true)
+          setAnchor(id)
+          setHead(id)
+          setSel(id)
+        }, 400)
+      }}
+      onTouchMove={(e) => {
+        if (!isTouchSelecting) return
+        const targetId = getCellIdFromTouch(e)
+        setHead(targetId)
+        setSel(targetId)
+      }}
+      onTouchEnd={() => {
+        if (longPressTimeout.current) {
+          clearTimeout(longPressTimeout.current)
+          longPressTimeout.current = null
+        }
+        setIsTouchSelecting(false)
+      }}
+      onTouchCancel={() => {
+        if (longPressTimeout.current) {
+          clearTimeout(longPressTimeout.current)
+          longPressTimeout.current = null
+        }
+        setIsTouchSelecting(false)
+      }}
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
         inRange && hasMultipleCells ? 'bg-blue-50' : ''
       }`}
@@ -276,6 +324,35 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         }}
         spellCheck="false"
         autoComplete="off"
+        // On mobile, quick tap selects single cell
+        onTouchStart={(e) => {
+          if (isHeader) return
+          longPressTimeout.current = setTimeout(() => {
+            setIsTouchSelecting(true)
+            setAnchor(id)
+            setHead(id)
+            setSel(id)
+          }, 400)
+        }}
+        onTouchEnd={() => {
+          if (longPressTimeout.current) {
+            clearTimeout(longPressTimeout.current)
+            longPressTimeout.current = null
+            // If not long-press, treat as single tap
+            if (!isTouchSelecting) {
+              clearRange()
+              setSel(id)
+            }
+          }
+          setIsTouchSelecting(false)
+        }}
+        onTouchCancel={() => {
+          if (longPressTimeout.current) {
+            clearTimeout(longPressTimeout.current)
+            longPressTimeout.current = null
+          }
+          setIsTouchSelecting(false)
+        }}
       />
       {/* Add ColumnResizer to the right edge of every cell except index column */}
       {col >= 0 && (
