@@ -227,7 +227,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       onMouseLeave={() => setHovered(false)}
 
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
-        inRange && hasMultipleCells ? 'bg-blue-100 dark:bg-[#21262d]' : ''
+        inRange && hasMultipleCells ? 'bg-blue-100/50 dark:bg-[#21262d]/50' : ''
       }`}
     >
       {/* Header cell: add single sort icon, right-aligned, only on hover */}
@@ -270,7 +270,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           ${isSelected ? 'border border-blue-600 dark:border-[#58a6ff]' : ''}
           focus:border-blue-600 dark:focus:border-[#58a6ff]
           focus:outline-none
-          focus:bg-blue-100 dark:focus:bg-[#161b22]
+          ${inRange && hasMultipleCells ? 'focus:bg-transparent dark:focus:bg-transparent' : 'focus:bg-blue-100 dark:focus:bg-[#161b22]'}
           rounded-none
         `}
         value={value}
