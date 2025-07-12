@@ -6,7 +6,6 @@ import {
   isFormula, 
   parseFormula, 
   evaluateFormula, 
-  defaultFormulas,
   getAvailableFormulas,
   getFormulaInfo,
   type FormulaContext 
@@ -59,6 +58,30 @@ describe('Formula utilities', () => {
 
     const result = evaluateFormula('=SUM(A1:A5)', context)
     expect(result).toBe(100) // 10 + 20 + 30 + 0 + 40
+  })
+
+  it('evaluates case-insensitive formulas correctly', () => {
+    const context: FormulaContext = {
+      cells: {
+        'A1': { value: '10' },
+        'A2': { value: '20' },
+        'A3': { value: '30' }
+      },
+      getCellValue: (id: string) => context.cells[id]?.value || '',
+      parseRange: (range: string) => parseRange(range)
+    }
+
+    // Test lowercase formula
+    const result1 = evaluateFormula('=sum(A1:A3)', context)
+    expect(result1).toBe(60) // 10 + 20 + 30
+
+    // Test mixed case formula
+    const result2 = evaluateFormula('=Sum(A1:A3)', context)
+    expect(result2).toBe(60) // 10 + 20 + 30
+
+    // Test uppercase formula (should still work)
+    const result3 = evaluateFormula('=SUM(A1:A3)', context)
+    expect(result3).toBe(60) // 10 + 20 + 30
   })
 
   it('evaluates AVERAGE formula correctly', () => {
@@ -159,7 +182,7 @@ describe('Formula utilities', () => {
     expect(result).toContain('#ERROR')
   })
 
-  it('returns error for invalid formula syntax', () => {
+  it('returns raw formula for incomplete formula syntax', () => {
     const context: FormulaContext = {
       cells: {},
       getCellValue: (id: string) => context.cells[id]?.value || '',
@@ -167,7 +190,7 @@ describe('Formula utilities', () => {
     }
 
     const result = evaluateFormula('=SUM(A1:A5', context) // Missing closing parenthesis
-    expect(result).toContain('#ERROR')
+    expect(result).toBe('=SUM(A1:A5') // Should return raw formula for incomplete syntax
   })
 
   it('provides available formulas', () => {

@@ -71,4 +71,84 @@ describe('Cell', () => {
     // Should move selection to B1
     expect(useSheetStore.getState().selection).toBe('B1');
   });
+
+  it('confirms formula with Enter and stays in cell', () => {
+    useSheetStore.setState({ selection: 'A1' });
+    const { getByDisplayValue } = render(
+      <Cell row={0} col={0} maxCol={2} maxRow={1} />
+    );
+    const input = getByDisplayValue('foo');
+    
+    // Set cell to edit mode first
+    useSheetStore.setState({ editingCellId: 'A1' });
+    
+    // Type a formula
+    fireEvent.change(input, { target: { value: '=SUM(B1:B3)' } });
+    
+    // Press Enter - should confirm formula and stay in cell
+    fireEvent.keyDown(input, { key: 'Enter' });
+    
+    // Should still be in A1
+    expect(useSheetStore.getState().selection).toBe('A1');
+    // Should have the formula value
+    expect(useSheetStore.getState().cells['A1'].value).toBe('=SUM(B1:B3)');
+  });
+
+  it('moves to next cell with Enter for non-formula input', () => {
+    useSheetStore.setState({ selection: 'A1' });
+    const { getByDisplayValue } = render(
+      <Cell row={0} col={0} maxCol={2} maxRow={1} />
+    );
+    const input = getByDisplayValue('foo');
+    
+    // Type regular text
+    fireEvent.change(input, { target: { value: 'Hello' } });
+    
+    // Press Enter - should move to next cell
+    fireEvent.keyDown(input, { key: 'Enter' });
+    
+    // Should move to A2 (next row)
+    expect(useSheetStore.getState().selection).toBe('A2');
+  });
+
+  it('allows range selection during formula input', () => {
+    useSheetStore.setState({ selection: 'A1' });
+    const { getByDisplayValue } = render(
+      <Cell row={0} col={0} maxCol={2} maxRow={1} />
+    );
+    const input = getByDisplayValue('foo');
+    
+    // Type a formula
+    fireEvent.change(input, { target: { value: '=SUM(' } });
+    
+    // Click on another cell to select range (should not clear range)
+    const cellContainer = input.closest('div');
+    fireEvent.mouseDown(cellContainer!, { button: 0 });
+    
+    // Should still have the formula value
+    expect(useSheetStore.getState().cells['A1'].value).toBe('=SUM(');
+  });
+
+  it('allows range selection during formula editing', () => {
+    useSheetStore.setState({ selection: 'A1' });
+    const { getByDisplayValue } = render(
+      <Cell row={0} col={0} maxCol={2} maxRow={1} />
+    );
+    const input = getByDisplayValue('foo');
+    
+    // Set cell to edit mode and type a formula
+    useSheetStore.setState({ editingCellId: 'A1' });
+    fireEvent.change(input, { target: { value: '=SUM(' } });
+    
+    // Verify we're in edit mode
+    expect(input).toHaveValue('=SUM(');
+    
+    // Click on another cell to start range selection
+    const cellContainer = input.closest('div');
+    fireEvent.mouseDown(cellContainer!, { button: 0 });
+    
+    // Verify we're still in edit mode and the formula is preserved
+    expect(useSheetStore.getState().cells['A1'].value).toBe('=SUM(');
+    expect(useSheetStore.getState().editingCellId).toBe('A1');
+  });
 }); 
