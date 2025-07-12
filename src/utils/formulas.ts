@@ -143,11 +143,11 @@ export const defaultFormulas: Record<string, FormulaFunction> = {
   }
 }
 
-// Parse a range like "A1:A10" into an array of cell IDs
+// Parse a range like "A1:B3" into an array of cell IDs
 export function parseRange(range: string): string[] {
-  const match = range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/)
+  const match = range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i)
   if (!match) {
-    throw new Error(`Invalid range format: ${range}. Expected format: A1:A10`)
+    throw new Error(`Invalid range format: ${range}. Expected format: A1:B3`)
   }
   
   const [, startCol, startRow, endCol, endRow] = match
@@ -158,17 +158,10 @@ export function parseRange(range: string): string[] {
   
   const cellIds: string[] = []
   
-  // For single column ranges, we only iterate rows
-  if (startColNum === endColNum) {
-    for (let row = startRowNum; row <= endRowNum; row++) {
-      cellIds.push(`${startCol}${row + 1}`)
-    }
-  } else {
-    // For multi-column ranges, iterate both rows and columns
-    for (let row = startRowNum; row <= endRowNum; row++) {
-      for (let col = startColNum; col <= endColNum; col++) {
-        cellIds.push(`${numberToColumn(col)}${row + 1}`)
-      }
+  // Always iterate all rows and columns in the rectangle
+  for (let row = Math.min(startRowNum, endRowNum); row <= Math.max(startRowNum, endRowNum); row++) {
+    for (let col = Math.min(startColNum, endColNum); col <= Math.max(startColNum, endColNum); col++) {
+      cellIds.push(`${numberToColumn(col)}${row + 1}`)
     }
   }
   
@@ -211,7 +204,7 @@ export function parseFormula(formula: string): { name: string; args: string[] } 
   }
   
   const formulaPart = trimmed.slice(1) // Remove the =
-  const match = formulaPart.match(/^([A-Z]+)\((.*)\)$/)
+  const match = formulaPart.match(/^([A-Za-z]+)\((.*)\)$/)
   
   if (!match) {
     throw new Error(`Invalid formula format: ${formula}`)
@@ -229,6 +222,13 @@ export function evaluateFormula(
   context: FormulaContext
 ): string | number {
   try {
+    // If the formula is incomplete (doesn't end with closing parenthesis), 
+    // return the raw formula to avoid parsing errors while typing
+    const trimmed = formula.trim()
+    if (!trimmed.endsWith(')') && trimmed.includes('(')) {
+      return formula
+    }
+    
     const { name, args } = parseFormula(formula)
     
     const formulaFn = defaultFormulas[name]
@@ -238,6 +238,11 @@ export function evaluateFormula(
     
     return formulaFn.execute(args, context)
   } catch (error) {
+    // If it's a parsing error and the formula starts with =, 
+    // it might be incomplete, so return the raw formula
+    if (error instanceof Error && error.message.includes('Invalid formula format') && formula.trim().startsWith('=')) {
+      return formula
+    }
     return `#ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`
   }
 }

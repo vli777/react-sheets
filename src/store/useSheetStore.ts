@@ -20,6 +20,9 @@ export const useSheetStore = create<Store>((set, get) => ({
   rangeAnchor: null,
   rangeHead: null,
 
+  editingCellId: null,
+  setEditingCellId: (id: string | null) => set({ editingCellId: id }),
+
   // History for undo/redo
   history: [],
   historyIndex: -1,
@@ -532,6 +535,14 @@ export const useSheetStore = create<Store>((set, get) => ({
       parseRange: (range: string) => parseRange(range)
     }
     
-    return String(evaluateFormula(value, context))
+    const result = evaluateFormula(value, context)
+    
+    // If the result is the same as the input, it might be an incomplete formula
+    // In that case, return the raw value to avoid showing errors while typing
+    if (result === value || (typeof result === 'string' && result.startsWith('#'))) {
+      return value
+    }
+    
+    return String(result)
   },
 }))

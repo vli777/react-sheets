@@ -54,7 +54,5 @@ export function keyboardMove(params: MoveParams): string | null {
     return null
   }
   const newCellId = getCellId(col, row)
-  // TO-DO: move selection debug output to toolbar
-  console.log({newCellId})
   return newCellId
 }

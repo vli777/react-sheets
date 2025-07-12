@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { getCellId, parseCellId } from '../utils/getCellId'
 import { keyboardMove } from '../utils/keyboardMove'
 import { useSheetStore } from '../store/useSheetStore'
+import { isFormula } from '../utils/formulas'
 
 
 const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'])
@@ -39,6 +40,8 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const clearRange = useSheetStore((s) => s.clearRange)
   const copySelection = useSheetStore((s) => s.copySelection)
   const pasteToSelection = useSheetStore((s) => s.pasteToSelection)
+  const editingCellId = useSheetStore((s) => s.editingCellId)
+  const setEditingCellId = useSheetStore((s) => s.setEditingCellId)
 
   const ref = useRef<HTMLInputElement>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
@@ -46,7 +49,12 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
 
   const isHeader = row === -1
   const value = isHeader ? cols[col]?.name ?? '' : dataVal
-  const displayValue = isHeader ? value : getCellValue(id)
+ 
+  // Only show input as editable if this cell is in edit mode
+  const isEditing = editingCellId === id
+ 
+  // When editing, show raw value; when not editing, show evaluated value
+  const displayValue = isHeader ? value : (isEditing ? value : getCellValue(id))
 
   useEffect(() => {
     if (selection === id) {
@@ -54,6 +62,43 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       ref.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
     }
   }, [selection, id])
+
+  useEffect(() => {
+    if (
+      isEditing &&
+      ref.current &&
+      rangeAnchor && rangeHead &&
+      rangeAnchor !== rangeHead &&
+      isFormula(ref.current.value)
+    ) {
+      // Compute range string
+      const { col: c0, row: r0 } = parseCellId(rangeAnchor)
+      const { col: c1, row: r1 } = parseCellId(rangeHead)
+      const loCol = Math.min(c0, c1)
+      const hiCol = Math.max(c0, c1)
+      const loRow = Math.min(r0, r1)
+      const hiRow = Math.max(r0, r1)
+      const startId = getCellId(loCol, loRow)
+      const endId = getCellId(hiCol, hiRow)
+      const rangeStr = `${startId}:${endId}`
+
+      // Insert at cursor position
+      const input = ref.current
+      const val = input.value
+      const start = input.selectionStart ?? val.length
+      const end = input.selectionEnd ?? val.length
+      const newVal = val.slice(0, start) + rangeStr + val.slice(end)
+      input.value = newVal
+      setCell(id, newVal)
+      // Move cursor to after inserted range
+      setTimeout(() => {
+        input.focus()
+        input.setSelectionRange(start + rangeStr.length, start + rangeStr.length)
+      }, 0)
+      // Clear range selection
+      clearRange()
+    }
+  }, [clearRange, id, isEditing, rangeAnchor, rangeHead, setCell])
 
   // Determine if this cell should show the selection border
   const isSelected = React.useMemo(() => {
@@ -100,7 +145,50 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     }
   }
 
+  const handleBlur = () => {
+    // Check if we have an incomplete formula (opened parentheses but not closed)
+    const currentEditingCellId = useSheetStore.getState().editingCellId
+    if (currentEditingCellId) {
+      const currentValue = useSheetStore.getState().cells[currentEditingCellId]?.value || ''
+      const trimmed = currentValue.trim()
+      
+      // Only stay in edit mode if we have an incomplete formula (opened parentheses)
+      if (isFormula(currentValue) && trimmed.includes('(') && !trimmed.endsWith(')')) {
+        // Refocus the input to keep editing
+        setTimeout(() => {
+          const editingInput = document.getElementById(currentEditingCellId) as HTMLInputElement
+          if (editingInput) {
+            editingInput.focus()
+          }
+        }, 0)
+        return
+      }
+    }
+    
+    // Exit edit mode for all other cases (clicking off, complete formulas, etc.)
+    setEditingCellId(null)
+  }
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.stopPropagation()
+    setEditingCellId(id)
+    e.currentTarget.select()
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Special handling for Enter key in formulas
+    if (e.key === 'Enter') {
+      const currentValue = e.currentTarget.value
+      if (isFormula(currentValue)) {
+        e.preventDefault()
+        setCell(id, currentValue)
+        setEditingCellId(null)
+        setSel(id)
+        return
+      }
+      // For non-formula input, let the normal navigation happen
+    }
+
     // Handle delete/backspace for range selection
     if (DELETE_KEYS.has(e.key) && inRange && hasMultipleCells) {
       e.preventDefault()
@@ -205,19 +293,42 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     <div
       onMouseDown={(e) => {
         e.preventDefault()
+        
+        // Get the current editing state
+        const currentEditingCellId = useSheetStore.getState().editingCellId
+        const isCurrentlyEditing = currentEditingCellId !== null
+        
+        // Check if we're currently editing a formula
+        const isEditingFormula = isCurrentlyEditing && 
+          isFormula(useSheetStore.getState().cells[currentEditingCellId!]?.value || '')
+        
         if (e.shiftKey) {
           // Extend range selection
           if (!rangeAnchor) {
             setAnchor(id)
-            setSel(id) // Selection should be at the anchor (start) of range
+            // Keep selection at the currently editing cell if editing a formula
+            if (isEditingFormula && currentEditingCellId) {
+              setSel(currentEditingCellId)
+            } else {
+              setSel(id)
+            }
           }
           setHead(id)
         } else {
           // Start new selection
           setAnchor(id)
           setHead(id)
-          setSel(id)
+          // Keep selection at the currently editing cell if editing a formula
+          if (isEditingFormula && currentEditingCellId) {
+            setSel(currentEditingCellId)
+          } else {
+            setSel(id)
+          }
         }
+        
+        // Don't clear range here - let the setAnchor/setHead calls handle range creation
+        // The range will be properly managed by the mouse events
+        // For formula editing, we preserve the range to allow range selection during input
       }}
       onMouseOver={(e) => {
         if (e.buttons === 1 && rangeAnchor) {
@@ -279,16 +390,29 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         value={displayValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         onClick={(e) => {
           e.stopPropagation()
-          clearRange()
-          setSel(id)
+          
+          // Get the current editing state
+          const currentEditingCellId = useSheetStore.getState().editingCellId
+          const isCurrentlyEditing = currentEditingCellId !== null
+          
+          // Check if we're currently editing a formula
+          const isEditingFormula = isCurrentlyEditing && 
+            isFormula(useSheetStore.getState().cells[currentEditingCellId!]?.value || '')
+          
+          // Only clear range if we're not currently editing a formula
+          if (!isEditingFormula) {
+            clearRange()
+          }
+          
+          // Don't change selection if we're editing a formula in another cell
+          if (!isEditingFormula || currentEditingCellId === id) {
+            setSel(id)
+          }
         }}
-        onDoubleClick={(e) => {
-          e.stopPropagation()
-          // Select all text in the input
-          e.currentTarget.select()
-        }}
+        onDoubleClick={handleDoubleClick}
         spellCheck="false"
         autoComplete="off"
       />

@@ -46,6 +46,9 @@ export type Store = {
   rangeAnchor: string | null
   rangeHead: string | null
 
+  editingCellId: string | null
+  setEditingCellId: (id: string | null) => void
+
   // History for undo/redo
   history: HistoryEntry[]
   historyIndex: number

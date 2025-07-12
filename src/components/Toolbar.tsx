@@ -1,6 +1,7 @@
 import React from 'react'
 import { useSheetStore } from '../store/useSheetStore'
 import { getCellId, parseCellId } from '../utils/getCellId'
+import { isFormula } from '../utils/formulas'
 
 function getRangeBounds(anchor: string, head: string) {
   const a = parseCellId(anchor)
@@ -20,9 +21,11 @@ export const Toolbar: React.FC = () => {
   const rangeHead = useSheetStore((s) => s.rangeHead)
   const cells = useSheetStore((s) => s.cells)
   const setCell = useSheetStore((s) => s.setCell)
+  const getCellValue = useSheetStore((s) => s.getCellValue)
 
   let display = ''
   let valueDisplay = ''
+  let rawValue = ''
 
   if (rangeAnchor && rangeHead && rangeAnchor !== rangeHead) {
     // Multi-cell range
@@ -31,14 +34,19 @@ export const Toolbar: React.FC = () => {
     const endId = getCellId(endCol, endRow)
     display = `${startId}:${endId}`
     // Show only the focused cell's value (like Google Sheets)
-    valueDisplay = selection ? (cells[selection]?.value ?? '') : ''
+    if (selection) {
+      rawValue = cells[selection]?.value ?? ''
+      valueDisplay = getCellValue(selection)
+    }
   } else if (selection) {
     // Single cell
     display = selection
-    valueDisplay = cells[selection]?.value ?? ''
+    rawValue = cells[selection]?.value ?? ''
+    valueDisplay = getCellValue(selection)
   } else {
     display = 'No selection'
     valueDisplay = ''
+    rawValue = ''
   }
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,12 +60,17 @@ export const Toolbar: React.FC = () => {
       <span className="text-gray-600 dark:text-[#8b949e] mr-4">{display}</span>
       <input
         type="text"
-        value={valueDisplay}
+        value={rawValue}
         onChange={handleValueChange}
         className="truncate text-gray-900 dark:text-[#c9d1d9] bg-transparent border-none outline-none flex-1 placeholder-gray-500 dark:placeholder-[#8b949e]"
         placeholder="No selection"
         disabled={!selection}
       />
+      {isFormula(rawValue) && valueDisplay !== rawValue && !valueDisplay.startsWith('#ERROR') && (
+        <span className="ml-2 text-gray-500 dark:text-[#8b949e]">
+          = {valueDisplay}
+        </span>
+      )}
     </div>
   )
 } 
