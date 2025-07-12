@@ -103,6 +103,20 @@ export const useSheetStore = create<Store>((set, get) => ({
       return { columns: cols };
     }),
 
+  resetColumnWidth: (idx: number) =>
+    set((s) => {
+      const cols = s.columns.slice();
+      // Pad columns if needed
+      while (cols.length <= idx) {
+        cols.push({ name: '', key: `__blank_${cols.length}` });
+      }
+      cols[idx] = {
+        ...cols[idx],
+        width: MIN_COL_PX,
+      };
+      return { columns: cols };
+    }),
+
   setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
   setColCount: (cols) => set((s) => ({ colCount: cols > s.colCount ? cols : s.colCount })),
   setRangeAnchor: (id) => set({ rangeAnchor: id }),

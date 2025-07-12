@@ -5,6 +5,7 @@ import { useRef } from 'react'
 
 export function ColumnResizer({ colIndex, isResizable = true }: { colIndex: number, isResizable?: boolean }) {
   const setWidth = useSheetStore((s) => s.setColumnWidth)
+  const resetWidth = useSheetStore((s) => s.resetColumnWidth)
   const startX = useRef(0)
   const startW = useRef(0)
 
@@ -27,6 +28,9 @@ export function ColumnResizer({ colIndex, isResizable = true }: { colIndex: numb
         startW.current = useSheetStore.getState().columns[colIndex]?.width ?? MIN_COL_PX
         window.addEventListener('mousemove', onMouseMove)
         window.addEventListener('mouseup', onMouseUp)
+      }}
+      onDoubleClick={() => {
+        resetWidth(colIndex)
       }}
     />
   )
