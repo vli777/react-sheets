@@ -80,4 +80,7 @@ export type Store = {
 
   // Sorting
   sortByColumn: (colIndex: number, direction: 'asc' | 'desc', rowRange?: [number, number]) => void
+
+  // Formula evaluation
+  getCellValue: (cellId: string) => string
 }

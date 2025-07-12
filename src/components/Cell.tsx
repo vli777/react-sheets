@@ -24,6 +24,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const id = getCellId(col, row)
   const cols = useSheetStore((s) => s.columns)
   const dataVal = useSheetStore((s) => s.cells[id]?.value ?? '')
+  const getCellValue = useSheetStore((s) => s.getCellValue)
   const selection = useSheetStore((s) => s.selection)
   const rangeAnchor = useSheetStore((s) => s.rangeAnchor)
   const rangeHead = useSheetStore((s) => s.rangeHead)
@@ -45,6 +46,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
 
   const isHeader = row === -1
   const value = isHeader ? cols[col]?.name ?? '' : dataVal
+  const displayValue = isHeader ? value : getCellValue(id)
 
   useEffect(() => {
     if (selection === id) {
@@ -93,6 +95,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     if (isHeader) {
       setCol(col, v)
     } else {
+      // For data cells, store the raw value (which could be a formula)
       setCell(id, v)
     }
   }
@@ -273,7 +276,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           ${inRange && hasMultipleCells ? 'focus:bg-transparent dark:focus:bg-transparent' : 'focus:bg-blue-100 dark:focus:bg-[#161b22]'}
           rounded-none
         `}
-        value={value}
+        value={displayValue}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onClick={(e) => {

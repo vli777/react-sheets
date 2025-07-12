@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import { apiToCellMap } from '../utils/apiTransform'
 import { getCellId, parseCellId } from '../utils/getCellId'
+import { isFormula, evaluateFormula, parseRange, type FormulaContext } from '../utils/formulas'
 import type { HistoryEntry, Store } from '../types/sheet'
 
 export const MIN_COL_PX = 144 // px ≈ 9rem
@@ -507,4 +508,30 @@ export const useSheetStore = create<Store>((set, get) => ({
 
   canUndo: () => get().historyIndex >= 0,
   canRedo: () => get().historyIndex < get().history.length - 1,
+
+  // Formula evaluation
+  getCellValue: (cellId: string) => {
+    const state = get()
+    const cell = state.cells[cellId]
+    if (!cell) return ''
+    
+    const value = cell.value
+    if (!isFormula(value)) return value
+    
+    // Create formula context
+    const context: FormulaContext = {
+      cells: state.cells,
+      getCellValue: (id: string) => {
+        const cellValue = state.cells[id]?.value || ''
+        // Recursively evaluate formulas to handle nested formulas
+        if (isFormula(cellValue)) {
+          return String(state.getCellValue(id))
+        }
+        return cellValue
+      },
+      parseRange: (range: string) => parseRange(range)
+    }
+    
+    return String(evaluateFormula(value, context))
+  },
 }))
