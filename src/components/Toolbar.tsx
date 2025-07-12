@@ -28,16 +28,8 @@ export const Toolbar: React.FC = () => {
     const { startCol, endCol, startRow, endRow } = getRangeBounds(rangeAnchor, rangeHead)
     const startId = getCellId(startCol, startRow)
     const endId = getCellId(endCol, endRow)
-    display = `${startId}:${endId}`
-    const values: string[] = []
-    for (let r = startRow; r <= endRow; r++) {
-      for (let c = startCol; c <= endCol; c++) {
-        const id = getCellId(c, r)
-        const v = cells[id]?.value ?? ''
-        if (v !== '') values.push(v)
-      }
-    }
-    valueDisplay = values.join(', ')
+    display = `${startId}:${endId}`    
+    valueDisplay = selection ? (cells[selection]?.value ?? '') : ''
   } else if (selection) {
     // Single cell
     display = selection
