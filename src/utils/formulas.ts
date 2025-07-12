@@ -143,14 +143,22 @@ export const defaultFormulas: Record<string, FormulaFunction> = {
   }
 }
 
-// Parse a range like "A1:B3" into an array of cell IDs
+// Parse a range like "A1:B3" or single cell like "A1" into an array of cell IDs
 export function parseRange(range: string): string[] {
-  const match = range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i)
-  if (!match) {
-    throw new Error(`Invalid range format: ${range}. Expected format: A1:B3`)
+  // First check if it's a single cell (A1 format)
+  const singleCellMatch = range.match(/^([A-Z]+)(\d+)$/i)
+  if (singleCellMatch) {
+    const [, col, row] = singleCellMatch
+    return [`${col.toUpperCase()}${row}`]
   }
   
-  const [, startCol, startRow, endCol, endRow] = match
+  // Then check if it's a range (A1:B3 format)
+  const rangeMatch = range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i)
+  if (!rangeMatch) {
+    throw new Error(`Invalid range format: ${range}. Expected format: A1 or A1:B3`)
+  }
+  
+  const [, startCol, startRow, endCol, endRow] = rangeMatch
   const startColNum = columnToNumber(startCol)
   const endColNum = columnToNumber(endCol)
   const startRowNum = parseInt(startRow) - 1 // Convert to 0-based

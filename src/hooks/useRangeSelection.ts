@@ -16,18 +16,27 @@ export function useRangeSelection() {
     const currentRangeAnchor = useSheetStore.getState().rangeAnchor
     const currentRangeHead = useSheetStore.getState().rangeHead
     
+    console.log('Range selection effect triggered:', {
+      editingCellId: currentEditingCellId,
+      rangeAnchor: currentRangeAnchor,
+      rangeHead: currentRangeHead
+    })
+    
     if (
       currentEditingCellId &&
       currentRangeAnchor &&
-      currentRangeHead &&
-      currentRangeAnchor !== currentRangeHead
+      currentRangeHead
     ) {
       const cell = useSheetStore.getState().cells[currentEditingCellId]
       
       if (!cell || !isFormula(cell.value)) {
+        console.log('Not a formula or no cell, returning')
         return
       }
-      // Compute range string
+      
+      console.log('Processing range insertion for formula:', cell.value)
+      
+      // Compute range string - handle both single cell and multi-cell ranges
       const { col: c0, row: r0 } = parseCellId(currentRangeAnchor)
       const { col: c1, row: r1 } = parseCellId(currentRangeHead)
       const loCol = Math.min(c0, c1)
@@ -36,11 +45,20 @@ export function useRangeSelection() {
       const hiRow = Math.max(r0, r1)
       const startId = getCellId(loCol, loRow)
       const endId = getCellId(hiCol, hiRow)
-      const rangeStr = `${startId}:${endId}`
+      
+      // For single cell, use just the cell ID; for range, use A1:B2 format
+      const rangeStr = startId === endId ? startId : `${startId}:${endId}`
+      
+      console.log('Computed range string:', rangeStr, {
+        startId,
+        endId,
+        isSingleCell: startId === endId
+      })
 
       // Get the input element for the editing cell
       const input = document.getElementById(currentEditingCellId) as HTMLInputElement
       if (!input) {
+        console.log('Input element not found for:', currentEditingCellId)
         return
       }
       
@@ -51,12 +69,21 @@ export function useRangeSelection() {
       // Find the last opening parenthesis before cursor
       const lastOpenParen = val.lastIndexOf('(', cursorPos)
       if (lastOpenParen === -1) {
+        console.log('No opening parenthesis found')
         return
       }
       
       // Find if there's already a range after the opening parenthesis
       const afterParen = val.slice(lastOpenParen + 1, cursorPos)
-      const hasExistingRange = /[A-Z]+\d+:[A-Z]+\d+/.test(afterParen)
+      const hasExistingRange = /[A-Z]+\d+(?::[A-Z]+\d+)?/.test(afterParen)
+      
+      console.log('Range insertion details:', {
+        currentValue: val,
+        cursorPos,
+        lastOpenParen,
+        afterParen,
+        hasExistingRange
+      })
       
       let newVal: string
       if (hasExistingRange) {
@@ -64,10 +91,14 @@ export function useRangeSelection() {
         const beforeRange = val.slice(0, lastOpenParen + 1)
         const afterRange = val.slice(cursorPos)
         newVal = beforeRange + rangeStr + afterRange
+        console.log('Replacing existing range')
       } else {
         // Insert the range at cursor position
         newVal = val.slice(0, cursorPos) + rangeStr + val.slice(cursorPos)
+        console.log('Inserting new range')
       }
+
+      console.log('New formula value:', newVal)
 
       // Update the cell value in the store
       useSheetStore.getState().setCell(currentEditingCellId, newVal)
@@ -81,6 +112,7 @@ export function useRangeSelection() {
 
       // Clear range selection so user can select another range
       useSheetStore.getState().clearRange()
+      console.log('Range insertion complete')
     }
   }, [editingCellId, rangeAnchor, rangeHead, cells])
 } 

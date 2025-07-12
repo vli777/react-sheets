@@ -43,6 +43,12 @@ describe('Formula utilities', () => {
     expect(parseRange('A1:C1')).toEqual(['A1', 'B1', 'C1'])
   })
 
+  it('parses single cells correctly', () => {
+    expect(parseRange('A1')).toEqual(['A1'])
+    expect(parseRange('B5')).toEqual(['B5'])
+    expect(parseRange('Z10')).toEqual(['Z10'])
+  })
+
   it('evaluates SUM formula correctly', () => {
     const context: FormulaContext = {
       cells: {
@@ -142,6 +148,29 @@ describe('Formula utilities', () => {
 
     const result = evaluateFormula('=MEDIAN(E1:E3)', context)
     expect(result).toBe(20) // Middle value of 10, 20, 30
+  })
+
+  it('evaluates single cell formulas correctly', () => {
+    const context: FormulaContext = {
+      cells: {
+        'A1': { value: '42' },
+        'B1': { value: '100' }
+      },
+      getCellValue: (id: string) => context.cells[id]?.value || '',
+      parseRange: (range: string) => parseRange(range)
+    }
+
+    // Test single cell SUM
+    const result1 = evaluateFormula('=SUM(A1)', context)
+    expect(result1).toBe(42)
+
+    // Test single cell AVERAGE
+    const result2 = evaluateFormula('=AVERAGE(B1)', context)
+    expect(result2).toBe(100)
+
+    // Test single cell MAX
+    const result3 = evaluateFormula('=MAX(A1)', context)
+    expect(result3).toBe(42)
   })
 
   it('handles empty ranges gracefully', () => {
