@@ -54,6 +54,14 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     }
   }, [selection, id])
 
+  // Determine if this cell should show the selection border
+  const isSelected = React.useMemo(() => {
+    if (selection === id) return true
+    // If we have a range and this cell is the range anchor, it should be selected
+    if (rangeAnchor === id) return true
+    return false
+  }, [selection, id, rangeAnchor])
+
   const inRange = React.useMemo(() => {
     if (!rangeAnchor || !rangeHead) return false
     const { col: c0, row: r0 } = parseCellId(rangeAnchor)
@@ -199,9 +207,9 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           // Extend range selection
           if (!rangeAnchor) {
             setAnchor(id)
+            setSel(id) // Selection should be at the anchor (start) of range
           }
           setHead(id)
-          setSel(id)
         } else {
           // Start new selection
           setAnchor(id)
@@ -213,7 +221,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         if (e.buttons === 1 && rangeAnchor) {
           // Left mouse button is pressed
           setHead(id)
-          setSel(id)
+          // Keep selection at the anchor (start) of range
         }
         setHovered(true)
       }}
@@ -258,7 +266,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           w-full h-full
           ${BASE_CELL_CLASS}
           ${className}
-          ${selection === id ? 'border border-blue-500' : ''}
+          ${isSelected ? 'border border-blue-500' : ''}
           focus:border-blue-400
           focus:outline-2
           focus:outline-blue-600
