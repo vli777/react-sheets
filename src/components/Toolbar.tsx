@@ -48,13 +48,13 @@ export const Toolbar: React.FC = () => {
   }
 
   return (
-    <div className="w-full px-4 py-2 bg-gray-100 border-b border-gray-300 flex items-center text-sm font-mono min-h-[40px]">
-      <span className="text-gray-600 mr-4">{display}</span>
+    <div className="w-full px-4 py-2 bg-gray-100 dark:bg-[#161b22] border-b border-gray-300 dark:border-[#30363d] flex items-center text-sm font-mono min-h-[40px]">
+      <span className="text-gray-600 dark:text-[#8b949e] mr-4">{display}</span>
       <input
         type="text"
         value={valueDisplay}
         onChange={handleValueChange}
-        className="truncate text-gray-900 bg-transparent border-none outline-none flex-1"
+        className="truncate text-gray-900 dark:text-[#c9d1d9] bg-transparent border-none outline-none flex-1 placeholder-gray-500 dark:placeholder-[#8b949e]"
         placeholder="No selection"
         disabled={!selection}
       />

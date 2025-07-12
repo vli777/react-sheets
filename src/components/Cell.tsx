@@ -83,8 +83,8 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   const getGridBorderClasses = () => {
     if (!showGrid) return ''
     let border = ''
-    if (row !== maxRow - 1) border += ' border-b border-[#e0e0e0]'
-    if (col !== maxCol - 1) border += ' border-r border-[#e0e0e0]'
+    if (row !== maxRow - 1) border += ' border-b border-[#e0e0e0] dark:border-[#30363d]'
+    if (col !== maxCol - 1) border += ' border-r border-[#e0e0e0] dark:border-[#30363d]'
     return border
   }
 
@@ -227,7 +227,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       onMouseLeave={() => setHovered(false)}
 
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
-        inRange && hasMultipleCells ? 'bg-blue-50' : ''
+        inRange && hasMultipleCells ? 'bg-blue-100 dark:bg-[#21262d]' : ''
       }`}
     >
       {/* Header cell: add single sort icon, right-aligned, only on hover */}
@@ -235,7 +235,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         <button
           type="button"
           title="Sort column"
-          className={`absolute top-1 right-2 z-30 text-xs px-1 py-0.5 rounded transition-opacity duration-150 ${hovered ? 'opacity-100' : 'opacity-0'} hover:bg-blue-100`}
+          className={`absolute top-1 right-2 z-30 text-xs px-1 py-0.5 rounded transition-opacity duration-150 ${hovered ? 'opacity-100' : 'opacity-0'} hover:bg-blue-100 dark:hover:bg-[#30363d]`}
           style={{ pointerEvents: 'auto' }}
           onClick={(e) => {
             e.stopPropagation()
@@ -266,12 +266,11 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           w-full h-full
           ${BASE_CELL_CLASS}
           ${className}
-          ${isSelected ? 'border border-blue-500' : ''}
-          focus:border-blue-400
-          focus:outline-2
-          focus:outline-blue-600
-          focus:outline-offset-0
-          ${inRange && hasMultipleCells ? 'bg-transparent' : ''}
+          ${inRange && hasMultipleCells ? 'bg-transparent dark:bg-transparent' : 'bg-white dark:bg-transparent'}
+          ${isSelected ? 'border border-blue-600 dark:border-[#58a6ff]' : ''}
+          focus:border-blue-600 dark:focus:border-[#58a6ff]
+          focus:outline-none
+          focus:bg-blue-100 dark:focus:bg-[#161b22]
           rounded-none
         `}
         value={value}

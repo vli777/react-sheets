@@ -97,17 +97,17 @@ export function Sheet({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex-1 overflow-auto border bg-white shadow rounded-md"
+      className="w-full h-full flex-1 overflow-auto border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] shadow rounded-md"
     >
       {/* Header Row */}
       <div className="flex">
         <div
-          className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 text-center' : 'text-transparent'}`}
+          className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 dark:text-[#484f58] text-center' : 'text-transparent'}`}
           style={{ width: INDEX_COLUMN_WIDTH, minWidth: INDEX_COLUMN_WIDTH }}
         />
 
         <div
-          className={`grid${showGrid ? ' border-b border-r border-gray-200' : ''}`}
+          className={`grid${showGrid ? ' border-b border-r border-gray-200 dark:border-[#30363d]' : ''}`}
           style={{ 
             gridTemplateColumns: columnTemplate, 
             minHeight: MIN_ROW_PX, 
@@ -131,7 +131,7 @@ export function Sheet({
         return (
           <div key={`row-${r}`} className="flex" style={{ height, minHeight: MIN_ROW_PX }}>
             <div
-              className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 text-center' : 'text-transparent'}`}
+              className={`px-4 relative flex items-center justify-center text-sm ${showIndex ? 'text-gray-300 dark:text-[#484f58] text-center' : 'text-transparent'}`}
               style={{ width: INDEX_COLUMN_WIDTH, minWidth: INDEX_COLUMN_WIDTH }}
             >
               {showIndex ? r + 1 : null}
@@ -139,7 +139,7 @@ export function Sheet({
             </div>
 
             <div
-              className={`grid${showGrid ? ' border-r border-gray-200' : ''}`}
+              className={`grid${showGrid ? ' border-r border-gray-200 dark:border-[#30363d]' : ''}`}
               style={{ 
                 gridTemplateColumns: columnTemplate, 
                 gap: '0px', 
