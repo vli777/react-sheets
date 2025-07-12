@@ -27,10 +27,11 @@ describe('Toolbar', () => {
   });
 
   it('shows multi-cell range', () => {
-    useSheetStore.setState({ rangeAnchor: 'A0', rangeHead: 'B1' });
+    useSheetStore.setState({ rangeAnchor: 'A0', rangeHead: 'B1', selection: 'A0' });
     const { getByText } = render(<Toolbar />);
     // Should show range A0:B1 and values foo, bar, baz
     expect(getByText('A0:B1')).toBeInTheDocument();
-    expect(getByText(/foo, bar, baz/)).toBeInTheDocument();
+    // Should show only the focused cell's value (foo from A0)
+    expect(getByText('foo')).toBeInTheDocument();
   });
 }); 
