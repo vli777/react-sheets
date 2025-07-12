@@ -8,6 +8,7 @@ import { Sheet } from '../src/components/Sheet'
 import { useSheetStore } from '../src/store/useSheetStore'
 import mockData from '../src/api/mockData.json'
 import type { ApiResponse } from '../src/types/api'
+import { Toolbar } from '../src/components/Toolbar'
 
 beforeEach(() => {
   useSheetStore.setState({
@@ -61,20 +62,22 @@ describe('Sheet sorting, selection, copy/paste, undo/redo', () => {
     const { getAllByRole } = render(<Sheet />)
     const user = userEvent.setup()
     // Find the header input for column "2020"
-    const headerInputs = getAllByRole('textbox').filter(input => input.value === '2020')
+    const headerInputs = getAllByRole('textbox').filter(input => (input as HTMLInputElement).value === '2020')
     expect(headerInputs.length).toBe(1)
     const header = headerInputs[0].closest('div')
+    expect(header).not.toBeNull()
     // Find the sort button
-    const sortBtn = header.querySelector('button[title*="Sort column"]')
+    const sortBtn = header!.querySelector('button[title*="Sort column"]')
+    expect(sortBtn).not.toBeNull()
     // Sort ascending (first click)
-    await user.hover(header)
-    await user.click(sortBtn)
+    await user.hover(header!)
+    await user.click(sortBtn!)
     const inputs = getAllByRole('textbox')
     // After sort, the first data cell in 2020 should be 0 (CoreSoft Suite)
     expect(getDataCellInput(inputs, 0, 1, colCount)).toHaveValue('0')
     // Sort descending (second click)
-    await user.hover(header)
-    await user.click(sortBtn)
+    await user.hover(header!)
+    await user.click(sortBtn!)
     // Now the first data cell in 2020 should be the largest (Total)
     expect(getDataCellInput(inputs, 0, 1, colCount)).toHaveValue('104665679.08339758')
   })
@@ -83,12 +86,14 @@ describe('Sheet sorting, selection, copy/paste, undo/redo', () => {
     const { getAllByRole } = render(<Sheet />)
     const user = userEvent.setup()
     // Find the header input for column "product"
-    const headerInputs = getAllByRole('textbox').filter(input => input.value === 'product')
+    const headerInputs = getAllByRole('textbox').filter(input => (input as HTMLInputElement).value === 'product')
     expect(headerInputs.length).toBe(1)
     const header = headerInputs[0].closest('div')
-    const sortBtn = header.querySelector('button[title*="Sort column"]')
-    await user.hover(header)
-    await user.click(sortBtn)
+    expect(header).not.toBeNull()
+    const sortBtn = header!.querySelector('button[title*="Sort column"]')
+    expect(sortBtn).not.toBeNull()
+    await user.hover(header!)
+    await user.click(sortBtn!)
     const inputs = getAllByRole('textbox')
     // After sort, the first product should be "Apex ERP Suite"
     expect(getDataCellInput(inputs, 0, 0, colCount)).toHaveValue('Apex ERP Suite')
@@ -104,10 +109,14 @@ describe('Sheet sorting, selection, copy/paste, undo/redo', () => {
     await user.click(getDataCellInput(inputs, 2, 1, colCount))
     await user.keyboard('{/Shift}')
     // Sort ascending in 2020 (should only affect first 3 rows)
-    const header = getAllByRole('textbox').find(input => input.value === '2020').closest('div')
-    const sortBtn = header.querySelector('button[title*="Sort column"]')
-    await user.hover(header)
-    await user.click(sortBtn)
+    const headerInput = getAllByRole('textbox').find(input => (input as HTMLInputElement).value === '2020')
+    expect(headerInput).toBeDefined()
+    const header = headerInput!.closest('div')
+    expect(header).not.toBeNull()
+    const sortBtn = header!.querySelector('button[title*="Sort column"]')
+    expect(sortBtn).not.toBeNull()
+    await user.hover(header!)
+    await user.click(sortBtn!)
     // The first three values in 2020 should be sorted (0, 5118724..., 10053102...)
     const v0 = parseFloat(getDataCellInput(inputs, 0, 1, colCount).value)
     const v1 = parseFloat(getDataCellInput(inputs, 1, 1, colCount).value)
@@ -161,5 +170,66 @@ describe('Sheet sorting, selection, copy/paste, undo/redo', () => {
     const inputs = getAllByRole('textbox')
     await user.click(getDataCellInput(inputs, 0, 3, colCount))
     expect(document.activeElement).toBe(getDataCellInput(inputs, 0, 3, colCount))
+  })
+})
+
+describe('SheetWithToolbar', () => {
+  it('allows editing cells through toolbar', async () => {
+    // Test toolbar editing directly
+    useSheetStore.setState({
+      selection: 'A1',
+      cells: { 'A1': { value: 'original' } }
+    })
+    
+    const { getByDisplayValue } = render(<Toolbar />)
+    const toolbarInput = getByDisplayValue('original')
+    
+    const user = userEvent.setup()
+    await user.clear(toolbarInput)
+    await user.type(toolbarInput, 'Toolbar Edit')
+    
+    // Check that the store was updated
+    expect(useSheetStore.getState().cells['A1'].value).toBe('Toolbar Edit')
+  })
+
+  it('updates toolbar when cell is edited', async () => {
+    // Test toolbar updates when store changes
+    useSheetStore.setState({
+      selection: 'A1',
+      cells: { 'A1': { value: 'original' } }
+    })
+    
+    const { getByDisplayValue, rerender } = render(<Toolbar />)
+    expect(getByDisplayValue('original')).toBeInTheDocument()
+    
+    // Update the store
+    useSheetStore.setState({
+      cells: { 'A1': { value: 'Cell Edit' } }
+    })
+    
+    // Re-render to see the update
+    rerender(<Toolbar />)
+    expect(getByDisplayValue('Cell Edit')).toBeInTheDocument()
+  })
+
+  it('shows range selection in toolbar', async () => {
+    // Test the Toolbar component directly with range state
+    useSheetStore.setState({
+      rangeAnchor: 'A1',
+      rangeHead: 'B1',
+      selection: 'A1',
+      cells: { 'A1': { value: 'foo' } }
+    })
+    
+    const { getByText } = render(<Toolbar />)
+    expect(getByText('A1:B1')).toBeInTheDocument()
+  })
+
+  it('disables toolbar when no selection', () => {
+    const { getByPlaceholderText } = render(<Toolbar />)
+    const toolbarInput = getByPlaceholderText('No selection')
+    
+    // Toolbar should be disabled when no cell is selected
+    expect(toolbarInput).toBeDisabled()
   })
 })
