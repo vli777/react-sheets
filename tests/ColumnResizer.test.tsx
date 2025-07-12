@@ -7,7 +7,11 @@ import { useSheetStore } from '../src/store/useSheetStore';
 beforeEach(() => {
   useSheetStore.setState({
     columns: [{ name: 'Col1', key: 'A', width: 144 }],
+    cells: {},
+    rowCount: 0,
+    colCount: 1,
     setColumnWidth: vi.fn(),
+    autoFitColumnWidth: vi.fn(),
   });
 });
 
@@ -30,5 +34,29 @@ describe('ColumnResizer', () => {
     expect(addEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function));
     expect(addEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
     addEventListenerSpy.mockRestore();
+  });
+
+  it('calls autoFitColumnWidth on double click', async () => {
+    const autoFitSpy = vi.fn();
+    useSheetStore.setState({ autoFitColumnWidth: autoFitSpy });
+    
+    const { container } = render(<ColumnResizer colIndex={0} isResizable={true} />);
+    const resizer = await container.querySelector('span');
+    expect(resizer).toBeInTheDocument();
+    
+    fireEvent.doubleClick(resizer!);
+    
+    expect(autoFitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('does not call autoFitColumnWidth when isResizable is false', async () => {
+    const autoFitSpy = vi.fn();
+    useSheetStore.setState({ autoFitColumnWidth: autoFitSpy });
+    
+    const { container } = render(<ColumnResizer colIndex={0} isResizable={false} />);
+    const resizer = await container.querySelector('span');
+    
+    // Should not render when not resizable
+    expect(resizer).not.toBeInTheDocument();
   });
 }); 

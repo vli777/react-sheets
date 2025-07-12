@@ -1,7 +1,7 @@
 // tests/Sheet.test.tsx
 
 import React from 'react'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Sheet } from '../src/components/Sheet'
@@ -231,5 +231,47 @@ describe('SheetWithToolbar', () => {
     
     // Toolbar should be disabled when no cell is selected
     expect(toolbarInput).toBeDisabled()
+  })
+})
+
+describe('Sheet auto-fit functionality', () => {
+  it('auto-fits column width on double-click of column resizer', async () => {
+    const { container } = render(<Sheet />)
+    const user = userEvent.setup()
+    
+    // Find the column resizer in the header row
+    const headerRow = container.querySelector('div:first-child')
+    const columnResizer = headerRow?.querySelector('span[class*="cursor-col-resize"]')
+    expect(columnResizer).toBeInTheDocument()
+    
+    // Mock the autoFitColumnWidth function
+    const autoFitSpy = vi.fn()
+    useSheetStore.setState({ autoFitColumnWidth: autoFitSpy })
+    
+    // Double-click the column resizer
+    await user.dblClick(columnResizer!)
+    
+    // Should call autoFitColumnWidth with column index 0
+    expect(autoFitSpy).toHaveBeenCalledWith(0)
+  })
+
+  it('auto-fits specific column when double-clicking its resizer', async () => {
+    const { container } = render(<Sheet />)
+    const user = userEvent.setup()
+    
+    // Find all column resizers
+    const headerRow = container.querySelector('div:first-child')
+    const columnResizers = headerRow?.querySelectorAll('span[class*="cursor-col-resize"]')
+    expect(columnResizers?.length).toBeGreaterThan(1)
+    
+    // Mock the autoFitColumnWidth function
+    const autoFitSpy = vi.fn()
+    useSheetStore.setState({ autoFitColumnWidth: autoFitSpy })
+    
+    // Double-click the second column resizer (index 1)
+    if (columnResizers && columnResizers.length > 1) {
+      await user.dblClick(columnResizers[1])
+      expect(autoFitSpy).toHaveBeenCalledWith(1)
+    }
   })
 })
