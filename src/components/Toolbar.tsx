@@ -19,6 +19,7 @@ export const Toolbar: React.FC = () => {
   const rangeAnchor = useSheetStore((s) => s.rangeAnchor)
   const rangeHead = useSheetStore((s) => s.rangeHead)
   const cells = useSheetStore((s) => s.cells)
+  const setCell = useSheetStore((s) => s.setCell)
 
   let display = ''
   let valueDisplay = ''
@@ -28,7 +29,8 @@ export const Toolbar: React.FC = () => {
     const { startCol, endCol, startRow, endRow } = getRangeBounds(rangeAnchor, rangeHead)
     const startId = getCellId(startCol, startRow)
     const endId = getCellId(endCol, endRow)
-    display = `${startId}:${endId}`    
+    display = `${startId}:${endId}`
+    // Show only the focused cell's value (like Google Sheets)
     valueDisplay = selection ? (cells[selection]?.value ?? '') : ''
   } else if (selection) {
     // Single cell
@@ -39,10 +41,23 @@ export const Toolbar: React.FC = () => {
     valueDisplay = ''
   }
 
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (selection) {
+      setCell(selection, e.target.value)
+    }
+  }
+
   return (
     <div className="w-full px-4 py-2 bg-gray-100 border-b border-gray-300 flex items-center text-sm font-mono min-h-[40px]">
       <span className="text-gray-600 mr-4">{display}</span>
-      <span className="truncate text-gray-900">{valueDisplay}</span>
+      <input
+        type="text"
+        value={valueDisplay}
+        onChange={handleValueChange}
+        className="truncate text-gray-900 bg-transparent border-none outline-none flex-1"
+        placeholder="No selection"
+        disabled={!selection}
+      />
     </div>
   )
 } 
