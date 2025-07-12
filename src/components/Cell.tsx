@@ -64,7 +64,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     if (isEditing) {
       setOriginalValue(dataVal)
     }
-  }, [isEditing])
+  }, [dataVal, isEditing])
 
   useEffect(() => {
     if (selection === id) {
@@ -384,25 +384,52 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
+        onMouseDown={(e) => {
+          // Range selection logic for formula editing
+          // (mirrors the logic in the parent div's onMouseDown)
+          e.stopPropagation();
+          e.preventDefault();
+          const currentEditingCellId = useSheetStore.getState().editingCellId;
+          const isCurrentlyEditing = currentEditingCellId !== null;
+          const isEditingFormula = isCurrentlyEditing && isFormula(useSheetStore.getState().cells[currentEditingCellId!]?.value || '');
+          if (e.shiftKey) {
+            if (!rangeAnchor) {
+              setAnchor(id);
+              if (isEditingFormula && currentEditingCellId) {
+                setSel(currentEditingCellId);
+              } else {
+                setSel(id);
+              }
+            }
+            setHead(id);
+          } else {
+            setAnchor(id);
+            setHead(id);
+            if (isEditingFormula && currentEditingCellId) {
+              setSel(currentEditingCellId);
+            } else {
+              setSel(id);
+            }
+          }
+        }}
         onClick={(e) => {
           e.stopPropagation()
-          
-          // Get the current editing state
+          // Only clear range if we're not currently editing a formula
           const currentEditingCellId = useSheetStore.getState().editingCellId
           const isCurrentlyEditing = currentEditingCellId !== null
-          
-          // Check if we're currently editing a formula
           const isEditingFormula = isCurrentlyEditing && 
             isFormula(useSheetStore.getState().cells[currentEditingCellId!]?.value || '')
           
-          // Only clear range if we're not currently editing a formula
+          // During formula editing, don't clear range on click - let the mouse events handle range building
           if (!isEditingFormula) {
             clearRange()
-          }
-          
-          // Don't change selection if we're editing a formula in another cell
-          if (!isEditingFormula || currentEditingCellId === id) {
             setSel(id)
+          } else {
+            // For formula editing, only change selection if clicking on the editing cell itself
+            if (currentEditingCellId === id) {
+              setSel(id)
+            }
+            // Don't clear range during formula editing to allow range building
           }
         }}
         onDoubleClick={handleDoubleClick}

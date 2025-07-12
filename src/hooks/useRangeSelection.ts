@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useSheetStore } from '../store/useSheetStore'
 import { getCellId, parseCellId } from '../utils/getCellId'
 import { isFormula } from '../utils/formulas'
@@ -8,7 +8,9 @@ export function useRangeSelection() {
   const editingCellId = useSheetStore((s) => s.editingCellId)
   const rangeAnchor = useSheetStore((s) => s.rangeAnchor)
   const rangeHead = useSheetStore((s) => s.rangeHead)
-  const cells = useSheetStore((s) => s.cells)
+  
+  // Use a ref to track if we've already processed this range to prevent infinite loops
+  const processedRangeRef = useRef<string | null>(null)
 
   useEffect(() => {
     // Only run if editing a formula and a range is selected
@@ -16,16 +18,26 @@ export function useRangeSelection() {
     const currentRangeAnchor = useSheetStore.getState().rangeAnchor
     const currentRangeHead = useSheetStore.getState().rangeHead
     
+    // Reset processed range when editing cell changes
+    if (editingCellId !== processedRangeRef.current?.split('-')[0]) {
+      processedRangeRef.current = null
+    }
+    
+    // Create a unique key for this range to prevent infinite loops
+    const rangeKey = `${currentEditingCellId}-${currentRangeAnchor}-${currentRangeHead}`
+    
     console.log('Range selection effect triggered:', {
       editingCellId: currentEditingCellId,
       rangeAnchor: currentRangeAnchor,
-      rangeHead: currentRangeHead
+      rangeHead: currentRangeHead,
+      rangeKey
     })
     
     if (
       currentEditingCellId &&
       currentRangeAnchor &&
-      currentRangeHead
+      currentRangeHead &&
+      processedRangeRef.current !== rangeKey
     ) {
       const cell = useSheetStore.getState().cells[currentEditingCellId]
       
@@ -110,9 +122,11 @@ export function useRangeSelection() {
         input.setSelectionRange(newCursorPos, newCursorPos)
       }, 0)
 
-      // Clear range selection so user can select another range
-      useSheetStore.getState().clearRange()
+      // Mark this range as processed to prevent infinite loops
+      processedRangeRef.current = rangeKey
+      
+      // Don't clear range automatically - let user manually clear or continue building range
       console.log('Range insertion complete')
     }
-  }, [editingCellId, rangeAnchor, rangeHead, cells])
+  }, [editingCellId, rangeAnchor, rangeHead])
 } 
