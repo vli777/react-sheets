@@ -274,6 +274,11 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
           clearRange()
           setSel(id)
         }}
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          // Select all text in the input
+          e.currentTarget.select()
+        }}
         spellCheck="false"
         autoComplete="off"
       />
