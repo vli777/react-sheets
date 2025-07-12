@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import './App.css'
 import { SheetWithToolbar } from './components/SheetWithToolbar'
+import { ThemeToggle } from './components/ThemeToggle'
 import { useSheetStore } from './store/useSheetStore'
+import { useThemeStore } from './store/useThemeStore'
 import type { ApiResponse } from './types/api'
 import mockData from './api/mockData.json'
 
@@ -11,6 +13,12 @@ interface AppProps {
 
 function App({ url = '/api/sheet' }: AppProps) {
   const loadApiData = useSheetStore((data) => data.initFromApi)
+  const applyTheme = useThemeStore((state) => state.applyTheme)
+
+  useEffect(() => {
+    // Initialize theme
+    applyTheme()
+  }, [applyTheme])
 
   useEffect(() => {
     async function fetchData() {
@@ -27,8 +35,11 @@ function App({ url = '/api/sheet' }: AppProps) {
   }, [loadApiData, url])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <SheetWithToolbar />
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#0d1117]">
+      <ThemeToggle />
+      <div className="flex-1 flex items-center justify-center">
+        <SheetWithToolbar />
+      </div>
     </div>
   )
 }
