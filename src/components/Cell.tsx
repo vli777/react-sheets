@@ -63,42 +63,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     }
   }, [selection, id])
 
-  useEffect(() => {
-    if (
-      isEditing &&
-      ref.current &&
-      rangeAnchor && rangeHead &&
-      rangeAnchor !== rangeHead &&
-      isFormula(ref.current.value)
-    ) {
-      // Compute range string
-      const { col: c0, row: r0 } = parseCellId(rangeAnchor)
-      const { col: c1, row: r1 } = parseCellId(rangeHead)
-      const loCol = Math.min(c0, c1)
-      const hiCol = Math.max(c0, c1)
-      const loRow = Math.min(r0, r1)
-      const hiRow = Math.max(r0, r1)
-      const startId = getCellId(loCol, loRow)
-      const endId = getCellId(hiCol, hiRow)
-      const rangeStr = `${startId}:${endId}`
-
-      // Insert at cursor position
-      const input = ref.current
-      const val = input.value
-      const start = input.selectionStart ?? val.length
-      const end = input.selectionEnd ?? val.length
-      const newVal = val.slice(0, start) + rangeStr + val.slice(end)
-      input.value = newVal
-      setCell(id, newVal)
-      // Move cursor to after inserted range
-      setTimeout(() => {
-        input.focus()
-        input.setSelectionRange(start + rangeStr.length, start + rangeStr.length)
-      }, 0)
-      // Clear range selection
-      clearRange()
-    }
-  }, [clearRange, id, isEditing, rangeAnchor, rangeHead, setCell])
+  // Range selection logic is now handled by the useRangeSelection hook in Sheet.tsx
 
   // Determine if this cell should show the selection border
   const isSelected = React.useMemo(() => {

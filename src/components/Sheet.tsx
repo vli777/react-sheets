@@ -5,6 +5,7 @@ import { useSheetStore, MIN_COL_PX, MIN_ROW_PX } from '../store/useSheetStore'
 import { ColumnResizer } from './ColumnResizer'
 import { RowResizer } from './RowResizer'
 import { Cell } from './Cell'
+import { useRangeSelection } from '../hooks/useRangeSelection'
 
 const INDEX_COLUMN_WIDTH = 48
 
@@ -33,6 +34,9 @@ export function Sheet({
   const redo = useSheetStore((s) => s.redo)
   const copySelection = useSheetStore((s) => s.copySelection)
   const pasteToSelection = useSheetStore((s) => s.pasteToSelection)
+
+  // Use the centralized range selection hook
+  useRangeSelection()
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [minCols, setMinCols] = useState(0)
