@@ -118,7 +118,7 @@ export function Sheet({
         >
           {renderCols.map((_, c) => (
             <div key={`h-${c}`} className="relative">
-              <Cell row={-1} col={c} className={headerCellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} isResizable={isResizable} />
+              <Cell row={-1} col={c} className={headerCellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
               <ColumnResizer colIndex={c} isResizable={isResizable} />
             </div>
           ))}
@@ -149,7 +149,7 @@ export function Sheet({
               }}
             >
               {renderCols.map((_, c) => (
-                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} isResizable={isResizable} />
+                <Cell key={`d-${r}-${c}`} row={r} col={c} className={cellClassName} maxCol={paddedCols} maxRow={paddedRows} showGrid={showGrid} />
               ))}
             </div>
           </div>

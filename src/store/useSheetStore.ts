@@ -117,6 +117,49 @@ export const useSheetStore = create<Store>((set, get) => ({
       return { columns: cols };
     }),
 
+  autoFitColumnWidth: (idx: number) => {
+    const state = get();
+    const { cells, columns, rowCount } = state;
+    
+    // Calculate the maximum width needed for this column
+    let maxWidth = MIN_COL_PX;
+    
+    // Create a temporary canvas to measure text width accurately
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    // Set font to match the cell font (from CSS) - text-sm = 14px
+    context.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    
+    // Check header width
+    const headerText = columns[idx]?.name || '';
+    const headerWidth = context.measureText(headerText).width;
+    maxWidth = Math.max(maxWidth, headerWidth + 16); // Add 8px padding on each side for breathing room
+    
+    // Check all cell values in this column
+    for (let row = 0; row < rowCount; row++) {
+      const cellId = getCellId(idx, row);
+      const cellValue = cells[cellId]?.value || '';
+      const cellWidth = context.measureText(cellValue).width;
+      maxWidth = Math.max(maxWidth, cellWidth + 16); // Add 8px padding on each side for breathing room
+    }
+    
+    // Apply the calculated width
+    set((s) => {
+      const cols = s.columns.slice();
+      // Pad columns if needed
+      while (cols.length <= idx) {
+        cols.push({ name: '', key: `__blank_${cols.length}` });
+      }
+      cols[idx] = {
+        ...cols[idx],
+        width: Math.max(MIN_COL_RESIZE_PX, Math.ceil(maxWidth)),
+      };
+      return { columns: cols };
+    });
+  },
+
   setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
   setColCount: (cols) => set((s) => ({ colCount: cols > s.colCount ? cols : s.colCount })),
   setRangeAnchor: (id) => set({ rangeAnchor: id }),

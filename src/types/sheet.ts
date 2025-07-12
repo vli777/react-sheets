@@ -60,6 +60,7 @@ export type Store = {
   setRowHeight: (rowIndex: number, px: number) => void
   setColumnWidth: (index: number, px: number) => void
   resetColumnWidth: (index: number) => void
+  autoFitColumnWidth: (index: number) => void
   setRangeAnchor: (id: string | null) => void
   setRangeHead: (id: string | null) => void
   clearRange: () => void
