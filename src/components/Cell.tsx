@@ -56,6 +56,16 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   // When editing, show raw value; when not editing, show evaluated value
   const displayValue = isHeader ? value : (isEditing ? value : getCellValue(id))
 
+  // Store the original value for cancel edit
+  const [originalValue, setOriginalValue] = useState<string | null>(null)
+
+  // When entering edit mode, store the original value
+  useEffect(() => {
+    if (isEditing) {
+      setOriginalValue(dataVal)
+    }
+  }, [isEditing])
+
   useEffect(() => {
     if (selection === id) {
       ref.current?.focus({ preventScroll: true })
@@ -105,8 +115,18 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
     if (isHeader) {
       setCol(col, v)
     } else {
-      // For data cells, store the raw value (which could be a formula)
       setCell(id, v)
+      // If user types '(', ensure we are in edit mode
+      if (v.startsWith('=') && v.includes('(') && editingCellId !== id) {
+        setEditingCellId(id)
+        setTimeout(() => {
+          const input = document.getElementById(id) as HTMLInputElement
+          if (input) {
+            input.focus()
+            input.setSelectionRange(v.length, v.length)
+          }
+        }, 0)
+      }
     }
   }
 
@@ -141,6 +161,14 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Exit edit mode on Escape and revert value
+    if (e.key === 'Escape') {
+      if (originalValue !== null) {
+        setCell(id, originalValue)
+      }
+      setEditingCellId(null)
+      return
+    }
     // Special handling for Enter key in formulas
     if (e.key === 'Enter') {
       const currentValue = e.currentTarget.value
