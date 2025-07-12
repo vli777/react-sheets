@@ -23,9 +23,27 @@ export const useSheetStore = create<Store>((set, get) => ({
   history: [],
   historyIndex: -1,
 
-  initFromApi: (apiData) => {
+  initFromApi: (apiData, autoFitTextColumns = true) => {
     const { cellMap, columns, rowCount, colCount } = apiToCellMap(apiData)
     set({ cells: cellMap, columns, rowCount, colCount })
+    
+    // Auto-fit text columns that don't have user-set widths (only in browser, not tests)
+    if (autoFitTextColumns && typeof window !== 'undefined') {
+      // Use setTimeout to ensure the state is updated before checking
+      setTimeout(() => {
+        const state = get()
+        for (let colIndex = 0; colIndex < colCount; colIndex++) {
+          const column = state.columns[colIndex]
+          if (!column.width) { // Only auto-fit if no user-set width
+            // Check if this column is text-based by sampling a few values
+            const isTextColumn = state.isTextColumn(colIndex)
+            if (isTextColumn) {
+              state.autoFitColumnWidth(colIndex)
+            }
+          }
+        }
+      }, 0)
+    }
   },
 
   setSelection: (id) => set({ selection: id }),
@@ -124,25 +142,41 @@ export const useSheetStore = create<Store>((set, get) => ({
     // Calculate the maximum width needed for this column
     let maxWidth = MIN_COL_PX;
     
-    // Create a temporary canvas to measure text width accurately
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (!context) return;
+    // Check if we're in a test environment (no canvas support)
+    const isTestEnv = typeof document === 'undefined' || !document.createElement('canvas').getContext;
     
-    // Set font to match the cell font (from CSS) - text-sm = 14px
-    context.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-    
-    // Check header width
-    const headerText = columns[idx]?.name || '';
-    const headerWidth = context.measureText(headerText).width;
-    maxWidth = Math.max(maxWidth, headerWidth + 16); // Add 8px padding on each side for breathing room
-    
-    // Check all cell values in this column
-    for (let row = 0; row < rowCount; row++) {
-      const cellId = getCellId(idx, row);
-      const cellValue = cells[cellId]?.value || '';
-      const cellWidth = context.measureText(cellValue).width;
-      maxWidth = Math.max(maxWidth, cellWidth + 16); // Add 8px padding on each side for breathing room
+    if (isTestEnv) {
+      // In test environment, use a simple character-based calculation
+      const headerText = columns[idx]?.name || '';
+      maxWidth = Math.max(maxWidth, headerText.length * 8 + 16); // Rough estimate: 8px per character
+      
+      for (let row = 0; row < rowCount; row++) {
+        const cellId = getCellId(idx, row);
+        const cellValue = cells[cellId]?.value || '';
+        const cellWidth = cellValue.length * 8 + 16; // Rough estimate: 8px per character
+        maxWidth = Math.max(maxWidth, cellWidth);
+      }
+    } else {
+      // In browser environment, use canvas for accurate measurement
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      
+      // Set font to match the cell font (from CSS) - text-sm = 14px
+      context.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+      
+      // Check header width
+      const headerText = columns[idx]?.name || '';
+      const headerWidth = context.measureText(headerText).width;
+      maxWidth = Math.max(maxWidth, headerWidth + 16); // Add 8px padding on each side for breathing room
+      
+      // Check all cell values in this column
+      for (let row = 0; row < rowCount; row++) {
+        const cellId = getCellId(idx, row);
+        const cellValue = cells[cellId]?.value || '';
+        const cellWidth = context.measureText(cellValue).width;
+        maxWidth = Math.max(maxWidth, cellWidth + 16); // Add 8px padding on each side for breathing room
+      }
     }
     
     // Apply the calculated width
@@ -158,6 +192,43 @@ export const useSheetStore = create<Store>((set, get) => ({
       };
       return { columns: cols };
     });
+  },
+
+  isTextColumn: (idx: number) => {
+    const state = get();
+    const { cells, rowCount } = state;
+    
+    // Sample up to 10 rows to determine if column is text-based
+    const sampleSize = Math.min(10, rowCount);
+    let textCount = 0;
+    let totalCount = 0;
+    
+    for (let row = 0; row < sampleSize; row++) {
+      const cellId = getCellId(idx, row);
+      const cellValue = cells[cellId]?.value || '';
+      
+      if (cellValue.trim() !== '') {
+        totalCount++;
+        // Check if the value is not a number (or is a number that looks like text)
+        const numValue = Number(cellValue);
+        const isNumber = !isNaN(numValue) && isFinite(numValue);
+        
+        // Consider it text if:
+        // 1. It's not a number, OR
+        // 2. It's a number but has leading zeros or decimal places that suggest it's meant to be text
+        // 3. It contains letters or special characters
+        const hasLetters = /[a-zA-Z]/.test(cellValue);
+        const hasLeadingZeros = /^0+[1-9]/.test(cellValue);
+        const isLikelyText = hasLetters || hasLeadingZeros || !isNumber;
+        
+        if (isLikelyText) {
+          textCount++;
+        }
+      }
+    }
+    
+    // If more than 50% of non-empty values are text, consider it a text column
+    return totalCount > 0 && (textCount / totalCount) > 0.5;
   },
 
   setRowCount: (rows) => set((s) => ({ rowCount: rows > s.rowCount ? rows : s.rowCount })),
