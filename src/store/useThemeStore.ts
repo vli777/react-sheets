@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 interface ThemeStore {
   theme: Theme
@@ -14,7 +14,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
-      theme: 'system',
+      theme: 'light',
       
       setTheme: (theme: Theme) => {
         set({ theme })
@@ -23,9 +23,6 @@ export const useThemeStore = create<ThemeStore>()(
       
       getCurrentTheme: (): 'light' | 'dark' => {
         const { theme } = get()
-        if (theme === 'system') {
-          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        }
         return theme
       },
       
@@ -55,10 +52,5 @@ if (typeof window !== 'undefined') {
   const store = useThemeStore.getState()
   store.applyTheme()
   
-  // Listen for system theme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (store.theme === 'system') {
-      store.applyTheme()
-    }
-  })
+
 } 

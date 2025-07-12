@@ -97,7 +97,7 @@ export function Sheet({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex-1 overflow-auto border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] shadow rounded-md"
+      className="w-full h-full flex-1 overflow-auto border border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#0d1117] shadow-black/20 rounded-md"
     >
       {/* Header Row */}
       <div className="flex">

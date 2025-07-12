@@ -227,7 +227,7 @@ export function Cell({ row, col, className = '', maxCol, maxRow, showGrid = true
       onMouseLeave={() => setHovered(false)}
 
       className={`relative w-full h-full rounded-none ${getGridBorderClasses()} ${
-        inRange && hasMultipleCells ? 'bg-blue-100/50 dark:bg-[#21262d]/50' : ''
+        inRange && hasMultipleCells ? 'bg-blue-100/50 dark:bg-blue-100/20' : ''
       }`}
     >
       {/* Header cell: add single sort icon, right-aligned, only on hover */}
